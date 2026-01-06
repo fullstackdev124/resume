@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{name}} — Resume</title>
+    <style>
+      :root{--accent:#2b3b4a;--muted:#666;--bg:#fff}
+      body{font-family:Georgia, 'Times New Roman', serif;color:#222;padding:40px;background:var(--bg);line-height:1.6}
+      /* floral accent at top-right created with layered radial gradients */
+      .card{max-width:820px;margin:0 auto;padding:8px 28px;position:relative}
+      .floral{position:absolute;right:0;top: -10px;width:380px;height:180px;pointer-events:none;background:radial-gradient(closest-side at 15% 30%, rgba(245,220,230,0.65), transparent 20%), radial-gradient(closest-side at 70% 60%, rgba(240,235,255,0.6), transparent 25%), radial-gradient(closest-side at 50% 30%, rgba(255,240,230,0.5), transparent 22%);filter:blur(6px);opacity:0.95}
+      header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+      .header-left{max-width:62%}
+      h1{margin:0;font-size:40px;color:var(--accent);font-weight:800;line-height:1}
+      .subtitle{font-size:18px;color:#444;margin-top:6px;margin-bottom:6px}
+      .contact{font-size:12px;color:var(--muted)}
+      .section{margin-top:18px;margin-bottom:18px;padding:6px 0}
+      .section h2{font-size:12px;color:var(--accent);margin:0 0 6px;text-transform:uppercase;letter-spacing:1px}
+      .section h2:after{content:"";display:block;height:4px;width:100%;background:rgba(43,59,74,0.12);margin-top:8px;border-radius:2px}
+      .achievements{margin-left:14px;line-height:1.55}
+      .muted{color:var(--muted)}
+      /* skill label alignment */
+      .skill-row strong{display:inline-block;width:110px}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <header>
+        <div>
+          <h1>{{name}}</h1>
+          <div class="contact">{{email}} · {{phone}} · {{location}}</div>
+        </div>
+        <div class="contact">{{linkedin}}</div>
+      </header>
+
+      {{#summary}}
+      <section class="section">
+        <h2>Summary</h2>
+        <div>{{summary}}</div>
+      </section>
+      {{/summary}}
+
+      {{#experience}}
+      <section class="section">
+        <h2>Experience</h2>
+        {{#experience.experience}}
+        <div>
+          <div style="display:flex;justify-content:space-between"><strong>{{title}}</strong><span style="color:var(--muted)">{{startDate}} - {{endDate}}</span></div>
+          <div style="color:var(--muted)">{{company}}{{#location}} · {{location}}{{/location}}</div>
+          <div class="achievements">{{#achievements}}• {{.}}<br/>{{/achievements}}</div>
+        </div>
+        {{/experience.experience}}
+      </section>
+      {{/experience}}
+      {{#skills}}
+      <section class="section">
+        <h2>Skills</h2>
+        <div>
+          {{#skills.skills}}
+          <div style="margin-bottom:8px"><strong>{{key}}:</strong> <span class="muted">{{value}}</span></div>
+          {{/skills.skills}}
+        </div>
+      </section>
+      {{/skills}}
+
+      {{#education}}
+      <section class="section">
+        <h2>Education</h2>
+        {{#education}}
+        <div class="muted">{{degree}}, {{school}} ({{graduationDate}})</div>
+        {{/education}}
+      </section>
+      {{/education}}
+    </div>
+  </body>
+</html>

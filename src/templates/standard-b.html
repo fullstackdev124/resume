@@ -1,0 +1,198 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{name}} — Resume</title>
+    <style>
+      :root{ --accent:#000; --muted:#333; --bg:#fff; --text:#000 }
+      body{
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        padding: 40px;
+        background: var(--bg);
+        line-height: 1.6;
+      }
+      .wrap{
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      header{
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      h1{
+        margin: 0;
+        font-size: 24px;
+        color: var(--text);
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .title{
+        font-size: 16px;
+        color: var(--text);
+        font-weight: 400;
+        margin-bottom: 8px;
+      }
+      .contact{
+        font-size: 14px;
+        color: var(--text);
+        font-weight: 400;
+      }
+      hr{
+        border: none;
+        border-top: 1px solid #000;
+        margin: 18px 0;
+      }
+      .section{
+        margin-bottom: 20px;
+      }
+      .section h2{
+        color: var(--text);
+        font-size: 14px;
+        margin: 0 0 10px 0;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+      .section-content{
+        color: var(--text);
+        line-height: 1.6;
+        text-align: left;
+        font-size: 14px;
+      }
+      .skill-category{
+        margin-bottom: 12px;
+      }
+      .skill-cat-title{
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+      .skill-items{
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-left: 20px;
+      }
+      .exp-item{
+        margin-bottom: 16px;
+      }
+      .exp-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 6px;
+      }
+      .exp-title{
+        font-weight: 700;
+        color: var(--text);
+        font-size: 14px;
+      }
+      .exp-company{
+        color: var(--text);
+        font-size: 14px;
+      }
+      .exp-dates{
+        color: var(--text);
+        font-size: 14px;
+        white-space: nowrap;
+      }
+      .achievements{
+        margin-left: 20px;
+        line-height: 1.6;
+        color: var(--text);
+        font-size: 14px;
+      }
+      .achievements div{
+        margin-bottom: 4px;
+      }
+      .education-item{
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>{{name}}</h1>
+        {{#title}}
+        <div class="title">{{title}}</div>
+        {{/title}}
+        <div class="contact">{{location}} | {{phone}} | {{email}}</div>
+      </header>
+
+      <hr/>
+
+      {{#summary}}
+      <div class="section">
+        <h2>SUMMARY</h2>
+        <div class="section-content">{{summary}}</div>
+      </div>
+      {{/summary}}
+
+      <hr/>
+
+      {{#skills}}
+      <div class="section">
+        <h2>TECHNICAL SKILLS</h2>
+        <div class="section-content">
+          {{#skills.skills}}
+          <div class="skill-category">
+            <div class="skill-cat-title">{{key}}</div>
+            <div class="skill-items">{{value}}</div>
+          </div>
+          {{/skills.skills}}
+        </div>
+      </div>
+      {{/skills}}
+
+      <hr/>
+
+      {{#experience}}
+      <div class="section">
+        <h2>PROFESSIONAL EXPERIENCE</h2>
+        <div class="section-content">
+          {{#experience.experience}}
+          <div class="exp-item">
+            <div class="exp-header">
+              <div>
+                <span class="exp-title">{{title}}</span>
+                {{#company}}
+                <span class="exp-company"> {{company}}</span>
+                {{/company}}
+              </div>
+              <div class="exp-dates">{{startDate}} – {{endDate}}</div>
+            </div>
+            {{#location}}
+            <div class="exp-dates" style="text-align: right; margin-top: 2px;">{{location}}</div>
+            {{/location}}
+            <div class="achievements">
+              {{#achievements}}
+              <div>• {{.}}</div>
+              {{/achievements}}
+            </div>
+          </div>
+          {{/experience.experience}}
+        </div>
+      </div>
+      {{/experience}}
+
+      {{#education}}
+      <hr/>
+      <div class="section">
+        <h2>EDUCATION</h2>
+        <div class="section-content">
+          {{#education}}
+          <div class="education-item">{{degree}}, {{school}} ({{graduationDate}})</div>
+          {{/education}}
+        </div>
+      </div>
+      {{/education}}
+    </div>
+  </body>
+</html>

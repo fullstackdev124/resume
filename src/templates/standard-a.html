@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{name}} — Resume</title>
+    <style>
+      :root{ --accent:#0b66ff; --muted:#6b7280; --bg:#ffffff; --text:#0f1720 }
+      html,body{height:100%}
+      body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color:var(--text); background:var(--bg); padding:36px; line-height:1.6; }
+      /* subtle patterned background with blur */
+      body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 10% 10%, rgba(11,102,255,0.06), transparent 8%), radial-gradient(circle at 90% 80%, rgba(6,34,98,0.03), transparent 12%);filter:blur(18px);z-index:0}
+      .wrapper{max-width:900px;margin:0 auto;background:var(--bg);position:relative;z-index:1}
+      header{display:block;text-align:center;padding-bottom:8px;margin-bottom:10px}
+      .meta{color:var(--muted);font-size:12px}
+      h1{margin:0;font-size:30px;color:var(--accent);font-weight:800}
+      .layout{display:block;max-width:900px;margin-top:8px}
+      .section{margin-bottom:18px;border:1px solid rgba(11,102,255,0.08);padding:12px;border-radius:8px;background:rgba(11,102,255,0.02)}
+      .section h2{font-size:13px;color:var(--accent);margin:0 0 10px 0;letter-spacing:0.6px;text-align:center}
+      .skill-badge{display:inline-block;background:#eef6ff;color:var(--accent);padding:6px 10px;border-radius:999px;font-size:11px;margin:6px 6px 6px 0}
+      .skill-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+      .experience .item{margin-bottom:12px}
+      .achievements{margin-left:14px;margin-top:8px;line-height:1.55}
+      .muted{color:var(--muted)}
+      .section .title-center{text-align:center;font-weight:700;margin-bottom:6px}
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <div>
+          <h1>{{name}}</h1>
+          <div class="meta">{{email}} · {{phone}} · {{location}}</div>
+        </div>
+        <div class="meta">{{linkedin}}</div>
+      </header>
+
+      <div class="layout">
+        {{#summary}}
+        <div class="section">
+          <h2>Summary</h2>
+          <div class="muted">{{summary}}</div>
+        </div>
+        {{/summary}}
+
+        {{#experience}}
+        <div class="section experience">
+          <h2>Experience</h2>
+          {{#experience.experience}}
+          <div class="item">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div><strong>{{title}}</strong> — <span class="muted">{{company}}</span></div>
+              <div class="muted">{{startDate}} — {{endDate}}</div>
+            </div>
+            {{#location}}
+            <div class="muted" style="margin-top: 2px; font-size: 11px;">{{location}}</div>
+            {{/location}}
+            <div class="achievements">
+              {{#achievements}}<div>• {{.}}</div>{{/achievements}}
+            </div>
+          </div>
+          {{/experience.experience}}
+        </div>
+        {{/experience}}
+
+        {{#skills}}
+        <div class="section">
+          <h2>Skills</h2>
+          <div class="skill-row">
+            {{#skills.skills}}
+            <div style="min-width:120px;max-width:100%">
+              <div class="title-center">{{key}}</div>
+              <div style="text-align:center;color:var(--muted);font-size:12px">{{value}}</div>
+            </div>
+            {{/skills.skills}}
+          </div>
+        </div>
+        {{/skills}}
+
+        {{#education}}
+        <div class="section">
+          <h2>Education</h2>
+          {{#education}}
+          <div class="muted">{{degree}}, {{school}} ({{graduationDate}})</div>
+          {{/education}}
+        </div>
+        {{/education}}
+      </div>
+    </div>
+
+  </body>
+</html>

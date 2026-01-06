@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{name}} — Resume</title>
+    <style>
+      body { font-family: 'Helvetica Neue', Helvetica, Arial; font-size:11px; color:#111; padding:28px }
+      header { text-align:left; margin-bottom:10px }
+      h1 { margin:0; font-size:16px }
+      .contact { font-size:10px; color:#444 }
+      .section { margin-top:8px }
+      .item { margin-bottom:6px }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>{{name}}</h1>
+      <div class="contact">{{email}} · {{phone}} · {{location}}</div>
+    </header>
+
+    {{#summary}}
+    <div class="section"><strong>Profile</strong><div>{{summary}}</div></div>
+    {{/summary}}
+
+    {{#experience}}
+    <div class="section">
+      <strong>Experience</strong>
+      {{#experience.experience}}
+      <div class="item"><strong>{{title}}</strong>, {{company}} — {{startDate}}-{{endDate}}
+        <div style="margin-left:8px">{{#achievements}}• {{.}}<br/>{{/achievements}}</div>
+      </div>
+      {{/experience.experience}}
+    </div>
+    {{/experience}}
+
+    {{#skills}}
+    <div class="section"><strong>Skills</strong><div>{{#skills}}<em>{{key}}:</em> {{value}}<br/>{{/skills}}</div></div>
+    {{/skills}}
+
+  </body>
+</html>
