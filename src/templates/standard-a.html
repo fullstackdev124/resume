@@ -5,41 +5,274 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{{name}} — Resume</title>
     <style>
-      :root{ --accent:#0b66ff; --muted:#6b7280; --bg:#ffffff; --text:#0f1720 }
-      html,body{height:100%}
-      body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color:var(--text); background:var(--bg); padding:36px; line-height:1.6; }
-      /* subtle patterned background with blur */
-      body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 10% 10%, rgba(11,102,255,0.06), transparent 8%), radial-gradient(circle at 90% 80%, rgba(6,34,98,0.03), transparent 12%);filter:blur(18px);z-index:0}
-      .wrapper{max-width:900px;margin:0 auto;background:var(--bg);position:relative;z-index:1}
-      header{display:block;text-align:center;padding-bottom:8px;margin-bottom:10px}
-      .meta{color:var(--muted);font-size:12px}
-      h1{margin:0;font-size:30px;color:var(--accent);font-weight:800}
-      .layout{display:block;max-width:900px;margin-top:8px}
-      .section{margin-bottom:18px;border:1px solid rgba(11,102,255,0.08);padding:12px;border-radius:8px;background:rgba(11,102,255,0.02)}
-      .section h2{font-size:13px;color:var(--accent);margin:0 0 10px 0;letter-spacing:0.6px;text-align:center}
-      .skill-badge{display:inline-block;background:#eef6ff;color:var(--accent);padding:6px 10px;border-radius:999px;font-size:11px;margin:6px 6px 6px 0}
-      .skill-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
-      .experience .item{margin-bottom:12px}
-      .achievements{margin-left:14px;margin-top:8px;line-height:1.55}
-      .muted{color:var(--muted)}
-      .section .title-center{text-align:center;font-weight:700;margin-bottom:6px}
+      :root{ 
+        --accent:#2563eb; 
+        --accent-light:#3b82f6;
+        --accent-dark:#1e40af;
+        --muted:#64748b; 
+        --muted-light:#94a3b8;
+        --bg:#ffffff; 
+        --text:#0f172a;
+        --border:#e2e8f0;
+        --section-bg:#f8fafc;
+        --gradient-start:#2563eb;
+        --gradient-end:#1e40af;
+      }
+      html,body{height:100%;margin:0;padding:0}
+      body { 
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+        color:var(--text); 
+        background:var(--bg);
+        padding:0;
+        line-height:1.7;
+        font-size:14px;
+      }
+      .wrapper{
+        max-width:920px;
+        margin:0 auto;
+        background:var(--bg);
+        position:relative;
+        z-index:1;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05);
+        border-radius:16px;
+        overflow:hidden;
+      }
+      header{
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color:white;
+        padding:48px 40px;
+        text-align:center;
+        position:relative;
+        overflow:hidden;
+      }
+      header::before{
+        content:"";
+        position:absolute;
+        top:-50%;
+        right:-20%;
+        width:300px;
+        height:300px;
+        background:rgba(255,255,255,0.1);
+        border-radius:50%;
+        filter:blur(60px);
+      }
+      header::after{
+        content:"";
+        position:absolute;
+        bottom:-30%;
+        left:-10%;
+        width:200px;
+        height:200px;
+        background:rgba(255,255,255,0.08);
+        border-radius:50%;
+        filter:blur(50px);
+      }
+      h1{
+        margin:0 0 12px 0;
+        font-size:42px;
+        font-weight:800;
+        letter-spacing:-0.5px;
+        position:relative;
+        z-index:1;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      .meta{
+        color:rgba(255,255,255,0.95);
+        font-size:14px;
+        font-weight:400;
+        letter-spacing:0.3px;
+        position:relative;
+        z-index:1;
+        margin-bottom:8px;
+      }
+      .linkedin{
+        color:rgba(255,255,255,0.9);
+        font-size:13px;
+        position:relative;
+        z-index:1;
+      }
+      .layout{
+        padding:40px 40px 40px 20px;
+      }
+      .section{
+        margin-bottom:32px;
+        background:var(--section-bg);
+        border:1px solid var(--border);
+        border-radius:12px;
+        padding:24px;
+        transition:all 0.3s ease;
+        position:relative;
+        overflow:hidden;
+      }
+      .section::before{
+        content:"";
+        position:absolute;
+        top:0;
+        left:0;
+        width:4px;
+        height:100%;
+        background:linear-gradient(180deg, var(--accent) 0%, var(--accent-light) 100%);
+      }
+      .section h2{
+        font-size:16px;
+        color:var(--accent);
+        margin:0 0 20px 0;
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:1.2px;
+        font-size:13px;
+        display:flex;
+        align-items:center;
+        gap:12px;
+      }
+      .section h2::after{
+        content:"";
+        flex:1;
+        height:1px;
+        background:linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+      }
+      .experience .item{
+        margin-bottom:24px;
+        padding-bottom:24px;
+        border-bottom:1px solid var(--border);
+      }
+      .experience .item:last-child{
+        margin-bottom:0;
+        padding-bottom:0;
+        border-bottom:none;
+        }
+      .exp-header{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        margin-bottom:8px;
+        flex-wrap:wrap;
+        gap:8px;
+      }
+      .exp-title{
+        font-weight:700;
+        color:var(--text);
+        font-size:16px;
+      }
+      .exp-company{
+        color:var(--accent);
+        font-weight:600;
+        font-size:15px;
+        margin-top:4px;
+      }
+      .exp-right{
+        display:flex;
+        flex-direction:column;
+        align-items:flex-end;
+        text-align:right;
+      }
+      .exp-dates{
+        color:var(--muted);
+        font-size:13px;
+        white-space:nowrap;
+        font-weight:500;
+      }
+      .exp-location{
+        color:var(--muted);
+        font-size:12px;
+        font-style:italic;
+        white-space:nowrap;
+        margin-top:4px;
+      }
+      .achievements{
+        margin-top:12px;
+        margin-left:0;
+        line-height:1.5;
+      }
+      .achievements div{
+        margin-bottom:8px;
+        padding-left:20px;
+        position:relative;
+        color:var(--text);
+        font-size:14px;
+      }
+      .achievements div::before{
+        content:"▸";
+        position:absolute;
+        left:0;
+        color:var(--accent);
+        font-weight:bold;
+      }
+      .muted{
+        color:var(--muted);
+        line-height:1.7;
+      }
+      .skill-row{
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+        gap:20px;
+        margin-top:16px;
+      }
+      .skill-item{
+        text-align:center;
+        padding:16px;
+        background:white;
+        border-radius:8px;
+        border:1px solid var(--border);
+        transition:all 0.2s ease;
+      }
+      .skill-item:hover{
+        transform:translateY(-2px);
+        box-shadow:0 4px 12px rgba(37,99,235,0.1);
+        border-color:var(--accent-light);
+      }
+      .skill-category{
+        font-weight:700;
+        color:var(--accent);
+        font-size:13px;
+        text-transform:uppercase;
+        letter-spacing:0.5px;
+        margin-bottom:8px;
+      }
+      .skill-value{
+        color:var(--muted);
+        font-size:13px;
+        line-height:1.6;
+      }
+      .education-item{
+        padding:12px 0;
+        border-bottom:1px solid var(--border);
+      }
+      .education-item:last-child{
+        border-bottom:none;
+      }
+      .education-item .degree{
+        font-weight:600;
+        color:var(--text);
+        font-size:15px;
+      }
+      .education-item .school{
+        color:var(--accent);
+        font-weight:500;
+        font-size:14px;
+      }
+      .education-item .date{
+        color:var(--muted);
+        font-size:13px;
+        margin-top:4px;
+      }
     </style>
   </head>
   <body>
     <div class="wrapper">
       <header>
-        <div>
-          <h1>{{name}}</h1>
-          <div class="meta">{{email}} · {{phone}} · {{location}}</div>
-        </div>
-        <div class="meta">{{linkedin}}</div>
+        <h1>{{name}}</h1>
+        <div class="meta">{{email}} · {{phone}} · {{location}}</div>
+        {{#linkedin}}
+        <div class="linkedin">{{linkedin}}</div>
+        {{/linkedin}}
       </header>
 
       <div class="layout">
         {{#summary}}
         <div class="section">
           <h2>Summary</h2>
-          <div class="muted">{{summary}}</div>
+          <div class="muted" style="font-size:14px;line-height:1.8;">{{summary}}</div>
         </div>
         {{/summary}}
 
@@ -48,15 +281,20 @@
           <h2>Experience</h2>
           {{#experience.experience}}
           <div class="item">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-              <div><strong>{{title}}</strong> — <span class="muted">{{company}}</span></div>
-              <div class="muted">{{startDate}} — {{endDate}}</div>
+            <div class="exp-header">
+              <div style="flex:1;">
+                <div class="exp-title">{{title}}</div>
+                <div class="exp-company">{{company}}</div>
+              </div>
+              <div class="exp-right">
+                <div class="exp-dates">{{startDate}} — {{endDate}}</div>
+                {{#location}}
+                <div class="exp-location">{{location}}</div>
+                {{/location}}
+              </div>
             </div>
-            {{#location}}
-            <div class="muted" style="margin-top: 2px; font-size: 11px;">{{location}}</div>
-            {{/location}}
             <div class="achievements">
-              {{#achievements}}<div>• {{.}}</div>{{/achievements}}
+              {{#achievements}}<div>{{.}}</div>{{/achievements}}
             </div>
           </div>
           {{/experience.experience}}
@@ -68,9 +306,9 @@
           <h2>Skills</h2>
           <div class="skill-row">
             {{#skills.skills}}
-            <div style="min-width:120px;max-width:100%">
-              <div class="title-center">{{key}}</div>
-              <div style="text-align:center;color:var(--muted);font-size:12px">{{value}}</div>
+            <div class="skill-item">
+              <div class="skill-category">{{key}}</div>
+              <div class="skill-value">{{value}}</div>
             </div>
             {{/skills.skills}}
           </div>
@@ -81,12 +319,15 @@
         <div class="section">
           <h2>Education</h2>
           {{#education}}
-          <div class="muted">{{degree}}, {{school}} ({{graduationDate}})</div>
+          <div class="education-item">
+            <div class="degree">{{degree}}</div>
+            <div class="school">{{school}}</div>
+            <div class="date">{{graduationDate}}</div>
+          </div>
           {{/education}}
         </div>
         {{/education}}
       </div>
     </div>
-
   </body>
 </html>
