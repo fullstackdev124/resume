@@ -6,13 +6,13 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export async function POST(request: NextRequest) {
   try {
-    const { json } = await request.json();
+    const { json, identifier } = await request.json();
 
     if (!json) {
       return NextResponse.json(
         { error: "JSON data is required" },
         { status: 400 }
-      );
+      );  
     }
 
     if (!supabaseUrl || !supabaseAnonKey) {
@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
       .insert([
         { 
           data: json,
-          email: emailPrefix
+          email: emailPrefix,
+          identifier: identifier || null
         }
       ])
       .select()

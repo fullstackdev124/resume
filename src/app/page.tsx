@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import AccountSelector from '../components/AccountSelector'
 import ResumeViewer from '../components/ResumeViewer'
 
-const mockAccounts = ['kaylarelyease@gmail.com', 'adriannabarrientoscc@gmail.com']
+const mockAccounts = ['kaylarelyease@gmail.com', 'adriannabarrientoscc@gmail.com', 'adonish495@gmail.com', 'hollandcody54@gmail.com']
 const mockResumes: Record<string,string> = {
   'kaylarelyease@gmail.com': `Kayla Relyea
 Senior Full Stack Engineer
@@ -213,11 +213,123 @@ Skills: Java, AWS, Monitoring, Automation, CI/CD, Distributed Systems
 EDUCATION
 Bachelor of Computer Science
 University of North Texas 08/2012 – 05/2016 | Dallas`,
+  'adonish495@gmail.com': `Adonis Hill
+Senior Full Stack Engineer
+adonish495@gmail.com | Hutto, TX 78634 | (818) 351-9995
+
+SUMMARY
+Senior Full Stack Engineer with 8+ years of experience building scalable, cloud–native fintech platforms with a focus on backend development using .NET Framework, .NET Core, and ASP.NET MVC/Web API. Proven track record of modernizing legacy systems through .NET version migration and designing high–performance services integrated with RabbitMQ, Kafka, and distributed data stores. Skilled in deploying production–ready systems on Azure and AWS using Docker, Kubernetes, and CI/CD pipelines. Experienced in leading cross–functional teams, mentoring engineers, and driving delivery across complex product ecosystems.
+TECHNICAL SKILLS
+Programming Languages: C#, Python, JavaScript, TypeScript, SQL, Bash, HTML, CSS
+Backend Frameworks: .NET Framework 4.x, .NET Core 3.1, .NET 5, .NET 6, .NET 7, ASP.NET MVC, ASP.NET Web API, gRPC, Node.js, Express.js, FastAPI, Django, Flask
+Frontend Frameworks & Libraries: Angular, React, Vue.js, Next.js, TypeScript, jQuery, Material UI, Ant Design, Bootstrap, Tailwind CSS, Chakra UI
+Databases: SQL Server, PostgreSQL, MySQL, MongoDB, DynamoDB, Redis, Cosmos DB
+ORM & Data Access: Entity Framework Core, Dapper, ADO.NET, Sequelize, Prisma, TypeORM
+Messaging & Event Streaming: RabbitMQ, Apache Kafka, Azure Service Bus, AWS SQS/SNS, NATS
+DevOps & CI/CD Frameworks: Docker, Kubernetes, Helm, GitHub Actions, Azure DevOps, Jenkins, CircleCI, ArgoCD
+Cloud Platforms: Azure, AWS, GCP, Firebase, Netlify, Vercel
+Monitoring & Logging Frameworks: App Insights, Prometheus, Grafana, Serilog, OpenTelemetry, NLog, ELK Stack
+Authentication & Security: OAuth2, JWT, ASP.NET Identity, Azure Active Directory, Keycloak, Auth0
+Testing Frameworks: xUnit, NUnit, Jest, Mocha, Cypress, Selenium, Postman, Playwright
+AI / ML Tools: TensorFlow, PyTorch, Scikit–learn, Hugging Face, OCR Tools
+API Documentation: Swagger, OpenAPI, Postman, Redoc
+Version Control & Collaboration: Git, GitHub, GitLab, Bitbucket, Jira, Confluence, Slack
+Infrastructure as Code: Terraform, Bicep, Pulumi, AWS CloudFormation
+PROFESSIONAL EXPERIENCE
+Brex | San Francisco, CA
+Senior Full Stack Engineer	Apr 2022 – Present
+Architected scalable booking and spend–approval microservices using .NET 6, gRPC, and PostgreSQL, enabling real–time travel policy enforcement for 50K+ monthly users with 99.98% uptime.
+Modernized legacy ASP.NET MVC modules by refactoring into containerized .NET Core APIs, reducing code complexity by 47% and improving CI/CD pipeline deployment times by 62%.
+Engineered high–performance, event–driven booking flows using RabbitMQ and Redis caching, decreasing travel checkout latency by 40% during peak hours.
+Integrated Angular and TypeScript frontends with dynamic policy logic and instant card payments, improving booking completion rates by 33% across desktop and mobile platforms.
+Orchestrated infrastructure migrations to Kubernetes and Azure App Services with Prometheus and OpenTelemetry observability, increasing production incident visibility by 4x.
+Implemented AI–powered flagging of out–of–policy bookings via Python and PyTorch classifiers, reducing manual expense review time by 70% for the finance team.
+Consolidated disparate authentication layers into a centralized OAuth2 + JWT–based identity service, aligning security practices across 4 platform modules and ensuring SOC 2 compliance.
+Led cross–functional initiatives with PMs, QA, and DevOps to create modular services for approvals, reconciliation, and accounting sync, accelerating feature release cadence by 45%.
+Mentored 6+ junior engineers through onboarding, biweekly code review sessions, and authored 12+ internal design docs on architectural patterns and service ownership.
+Reduced platform technical debt by replacing brittle monolith patterns with decoupled service contracts via Dapper and Entity Framework Core, improving long–term maintainability scores by 2.6x.
+Spearheaded observability standardization using Serilog, Azure App Insights, and Grafana dashboards, cutting triage times by 58% during on–call rotations.
+Trellis |	Los Angeles, CA
+Full Stack Engineer	Feb 2018 – Mar 2022
+Developed scalable loan account management features using ASP.NET Core (C#), Angular, and Azure SQL, enabling 24/7 access to real–time borrower data for 120K+ monthly active users.
+Optimized critical API endpoints powering payment history and auto–pay setup with Dapper and PostgreSQL, reducing average response times by 48% and supporting 3x traffic spikes.
+Implemented end–to–end CI/CD pipelines with Docker and GitHub Actions, cutting deployment cycle times by 60% and improving engineering velocity across 3 agile squads.
+Integrated secure authentication via ASP.NET Identity, OAuth2, and JWT, hardening protection of sensitive loan data and achieving 100% compliance with updated federal audit requirements.
+Partnered with QA, designers, and PMs to refactor front–end workflows in Angular and React, decreasing user–reported bugs by 35% and improving portal stability for mobile and desktop users.
+Flourish | Dallas, TX
+Software Engineer	Jun 2015 – Jan 2018
+Engineered secure cash movement and investment tracking workflows using .NET (C#), SQL Server, and Redis, reducing transaction latency by 31% while ensuring SOC 2 and SEC–compliant data handling.
+Architected backend services powering FDIC–sweep operations across partner banks via Azure App Services and App Insights, increasing high–yield account coverage automation by 4x.
+Integrated Angular frontends with RESTful APIs and real–time Redis caching to support advisor and client dashboards, boosting session stability by 45% under high–load conditions.
+Collaborated with QA engineers, PMs, and senior developers in agile sprints to refactor reporting pipelines, cutting monthly reconciliation errors by 70%.
+EDUCATION
+University of Texas, Austin
+B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
+  'hollandcody54@gmail.com': `Cody Holland
+Senior Full Stack Engineer
+Norco, CA 92860 | (650) 451–5345 | hollandcody54@gmail.com
+SUMMARY
+Senior Full Stack Engineer with 10+ years delivering healthcare platforms, focused on RCM, payer–provider interoperability, and PHI–safe workflows. Microservices and APIs across REST, GraphQL (Hot Chocolate), gRPC, and event streaming with Kafka, backed by SQL Server/PostgreSQL and MongoDB/Cosmos DB/Redis. Delivered measurable outcomes including p95 latency 28% reduction, eligibility denials 22% reduction, and 32% faster dashboard load through performance tuning and scalable architecture. Implemented HIPAA/PHI controls, HL7 v2/FHIR R4/X12 270/271 integrations, cloud delivery on AWS/Azure/GCP with Docker/Kubernetes, CI/CD, observability, and GenAI workflows using Azure OpenAI, Databricks, Python.
+TECHNICAL SKILLS
+Languages: C#, .NET, Python, SQL, LINQ
+Backend: .NET 6/7/8, ASP.NET Core 6–8, Minimal APIs, MVC, Web API, EF Core 6–8, Dapper, MediatR (CQRS), AutoMapper, Polly, Hangfire, gRPC, SignalR, Swagger/Swashbuckle, OpenAPI, Hot Chocolate (GraphQL)
+Frontend: Blazor WebAssembly (.NET 7/8), Blazor Server (.NET 6–8), Razor Pages, HTML5, CSS3/SCSS
+Desktop: WPF (.NET Framework 4.7.2 / .NET 6+), .NET MAUI (.NET 7/8), WinForms, XAML, MVVM
+Databases & Caching: SQL Server, PostgreSQL, MongoDB, Cosmos DB, Redis
+Messaging & Streaming: Kafka, Azure Service Bus, AWS SNS/SQS, GCP Pub/Sub
+Cloud & DevOps: AWS, Azure, GCP, Docker, Kubernetes (AKS/EKS/GKE), Helm, Terraform, Azure DevOps Pipelines, GitHub Actions, Bitbucket Pipelines
+Observability: OpenTelemetry, Application Insights, Azure Monitor, AWS CloudWatch, Serilog
+Testing: xUnit, NUnit, MSTest, Moq, FluentAssertions, Coverlet, Testcontainers, Postman, Newman, Playwright
+Security: OAuth2/OIDC, JWT, TLS, AES–256, Azure Key Vault, AWS KMS, IAM
+AI / Data Platforms: Azure OpenAI, Databricks, Amazon SageMaker, embeddings, RAG patterns
+Developer Tools: Visual Studio, VS Code, Rider, Git, Bitbucket, GitHub, NuGet, MSBuild, dotnet CLI, SonarQube, Jira, Confluence
+PROFESSIONAL EXPERIENCE
+AKASA	| San Francisco, CA
+Senior Full Stack Engineer	| Apr 2022 – Present
+Engineered X12 270/271 eligibility–verification microservice in ASP.NET Core 8 and EF Core 8, parsing payer responses and updating EHR records, reducing verification from 7 minutes to 25 seconds.
+Normalized HL7 v2 to FHIR R4 adapters for Epic and Cerner via .NET 7 integration services, cutting interface errors 18% and enabling near–real–time coverage updates.
+Choreographed Kafka event streams for payer responses and workqueue updates using .NET 8 consumers with outbox and idempotency patterns, boosting claim–status throughput 3x during peaks.
+Published Hot Chocolate GraphQL gateway on .NET 8 over REST microservices, standardizing schemas with OpenAPI, trimming client round–trips 35% and accelerating RCM workflow iteration 25%.
+Crafted Blazor WebAssembly dashboard on .NET 8 with RBAC and audit trails, integrating SignalR and Redis, improving load time 32% for 2,000 front–desk users.
+Fortified PHI services under HIPAA BAAs by enforcing TLS, AES–256, and Azure Key Vault, plus immutable audit logs in .NET 8, achieving zero high–severity findings.
+Accelerated CI/CD via Azure DevOps and GitHub Actions, running container scans and SonarQube gates, releasing .NET 7 to AKS and .NET 8 to EKS, raising frequency 3x.
+Instrumented .NET 8 microservices with OpenTelemetry, Application Insights, and Serilog, tuning dashboards and alerts to cut p95 latency 28% and reduce alert noise 30%.
+Instituted automated testing for ASP.NET Core 8 using xUnit, Moq, FluentAssertions, Testcontainers, and Playwright E2E, lifting coverage to 85% and lowering escaped defects 37%.
+Embedded patient cost–estimation and payment capture in Blazor .NET 8, integrating Stripe tokenization and PCI controls, increasing upfront collections 18% while sustaining sub–2s checkout.
+Steered GenAI denial triage using Azure OpenAI embeddings and Databricks on AWS, exposing scores through Python and .NET 8 APIs, cutting manual touches 70% and improving accuracy 12%.
+Guided cross–functional Jira and Kanban delivery with Bitbucket Git workflows and PR standards, mentoring engineers on .NET 7 migration, shortening onboarding 30% and boosting sprint predictability 20%.
+Medely | Los Angeles, CA
+Senior .NET Engineer	| Feb 2018 – Mar 2022
+Devised shift–matching microservices on .NET Core 3.1 with Kafka and Redis, scoring availability and specialty, increasing fill–rate 26% and supporting 10k concurrent clinician sessions.
+Produced clinician onboarding and credentialing service in ASP.NET Core 3.1 with SQL Server and MongoDB, validating BLS and ACLS plus licensure, reducing review turnaround 45%.
+Shaped Blazor Server portal on .NET 5 with role–based access and audit logs, enabling SignalR notifications, improving shift posting speed 30% for 1,200 healthcare facilities.
+Surfaced Hot Chocolate GraphQL endpoints on .NET 6 over REST APIs for mobile clients, optimizing payload composition, reducing over–fetching 40% and improving responsiveness 22%.
+Incorporated Stripe Connect payouts and webhook reconciliation into ASP.NET Core 6 services, enforcing idempotency keys and retries, reducing payout failures 35% and accelerating payments to 48 hours.
+Upgraded monolithic .NET Core 2.2 platform to .NET 6 with EF Core 6 migrations and feature flags, reducing cold starts 25% and eliminating 40% high–risk CVEs.
+Encapsulated .NET 6 services with Docker and deployed to GKE and EKS using Helm, automating Bitbucket Pipelines and Azure DevOps releases to cut deployment time 40%.
+Reinforced quality gates for ASP.NET Core 6 with xUnit, NUnit, Postman, Newman, and Playwright E2E flows, increasing coverage 80% and reducing regressions 33% per release.
+Safeguarded PHI–adjacent data in multi–tenant SaaS by implementing OAuth2 and OIDC, least–privilege IAM, and audit logging, lowering access incidents 30% in production across AWS, Azure, and GCP.
+Piloted matching signals using Python and SageMaker, publishing scores into .NET 6 APIs and SQL Server, increasing shift acceptance 14% and reducing manual sorting 55%.
+Aligned Jira epics with product and clinical operations by running demos, stakeholder reviews, and postmortems, improving roadmap alignment 20% and reducing SLA breaches 15% quarterly.
+Prime Health Care |	Chino, CA
+Software Engineer	| Jun 2015 – Jan 2018
+Authored OB intake and prenatal scheduling module in ASP.NET MVC 5 on .NET Framework 4.7.2 with SQL Server, reducing registration time 25% across five clinics.
+Interfaced HL7 v2 ADT and ORU feeds into EMR via .NET Framework 4.7.2 parsers and Polly retries, improving order timeliness 30% and cutting interface errors 18%.
+Programmed WPF charge–capture desktop tool on .NET Framework 4.7.2 with ICD and CPT validation plus billing rules, reducing claim rework 20% and accelerating submission by two days.
+Composed SSRS dashboards for NICU and postpartum quality metrics by optimizing SQL indexes and ETL jobs on SQL Server, improving runtimes 35% and supporting monthly leadership reviews.
+Enforced HIPAA safeguards for PHI by implementing RBAC, audit trails, and TLS across ASP.NET Web API 2 services on .NET Framework 4.7.2, achieving zero high–severity findings.
+Operationalized patient statement payment posting through PCI–conscious tokenization and reconciliation exports in C# .NET Framework 4.7.2, improving payment accuracy 15% and reducing posting delays 2 days.
+Systematized release packaging using MSBuild, NuGet, and smoke–test scripts for ASP.NET MVC 5, reducing deployment window 40% and minimizing rollback incidents 30% in production.
+EDUCATION
+University of California, San Diego
+B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 }
 
 const mockTemplates: Record<string,string> = {
   'kaylarelyease@gmail.com': 'standard-b',
   'adriannabarrientoscc@gmail.com': 'standard-c',
+  'adonish495@gmail.com': `standard-a`,
+  'hollandcody54@gmail.com': `standard-d`,
 }
 
 export default function Page() {
@@ -299,7 +411,10 @@ export default function Page() {
                         await fetch('/api/save-resume', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ json: resumeData }),
+                          body: JSON.stringify({ 
+                            json: resumeData,
+                            identifier: identifier && identifier.trim() ? identifier.trim() : null
+                          }),
                         })
                       } catch (error) {
                         console.error('Failed to save resume to Supabase:', error)
