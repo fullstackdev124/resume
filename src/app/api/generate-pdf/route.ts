@@ -64,10 +64,12 @@ export async function POST(request: NextRequest) {
           const chromium = await import('@sparticuz/chromium')
           const puppeteerModule = await import('puppeteer-core')
           const puppeteer = puppeteerModule.default || puppeteerModule
+          // Convert chromium.headless (true | "shell") to Puppeteer's expected type (boolean | "new")
+          const headlessValue = chromium.default.headless === true || chromium.default.headless === 'shell' ? true : 'new'
           browser = await puppeteer.launch({
             args: chromium.default.args,
             executablePath: await chromium.default.executablePath(),
-            headless: chromium.default.headless,
+            headless: headlessValue,
           })
         } else {
           // Local development: Use regular puppeteer
