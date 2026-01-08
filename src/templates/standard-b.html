@@ -9,9 +9,9 @@
       body{
         font-family: Arial, Helvetica, sans-serif;
         color: var(--text);
-        padding: 40px;
+        padding: 8px 24px;
         background: var(--bg);
-        line-height: 1.6;
+        line-height: 1.2;
       }
       .wrap{
         max-width: 900px;
@@ -50,7 +50,7 @@
       .section h2{
         color: var(--text);
         font-size: 14px;
-        margin: 0 0 10px 0;
+        margin: 0 0 6px 0;
         font-weight: 700;
         text-transform: uppercase;
         text-align: center;
@@ -81,15 +81,28 @@
         margin-bottom: 16px;
       }
       .exp-header{
+        margin-bottom: 6px;
+      }
+      .exp-title-row{
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 6px;
+        margin-bottom: 2px;
       }
       .exp-title{
         font-weight: 700;
         color: var(--text);
         font-size: 14px;
+      }
+      .exp-location{
+        color: var(--text);
+        font-size: 14px;
+      }
+      .exp-company-row{
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2px;
       }
       .exp-company{
         color: var(--text);
@@ -160,17 +173,19 @@
           {{#experience.experience}}
           <div class="exp-item">
             <div class="exp-header">
-              <div>
+              <div class="exp-title-row">
                 <span class="exp-title">{{title}}</span>
-                {{#company}}
-                <span class="exp-company"> {{company}}</span>
-                {{/company}}
+                {{#location}}
+                <span class="exp-location">{{location}}</span>
+                {{/location}}
               </div>
-              <div class="exp-dates">{{startDate}} – {{endDate}}</div>
+              <div class="exp-company-row">
+                {{#company}}
+                <span class="exp-company">{{company}}</span>
+                {{/company}}
+                <span class="exp-dates">{{startDate}} – {{endDate}}</span>
+              </div>
             </div>
-            {{#location}}
-            <div class="exp-dates" style="text-align: right; margin-top: 2px;">{{location}}</div>
-            {{/location}}
             <div class="achievements">
               {{#achievements}}
               <div>• {{.}}</div>
