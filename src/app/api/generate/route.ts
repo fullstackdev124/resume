@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import fs from 'fs/promises'
-import path from 'path'
-import Mustache from 'mustache'
+import { generatePdfFromResume } from "@/lib/pdfGenerator";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
@@ -1129,74 +1127,10 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
     // Template is provided in the request; default to 'standard' if missing
     const template = requestedTemplate || 'standard'
 
-    // Generate a PDF from the resume JSON using the chosen template by rendering HTML + headless Chromium
-    const generatePdfBuffer = async (resume: any, tmpl: string) => {
-      try {
-        // Read template file
-        const tplPath = path.join(process.cwd(), 'src', 'templates', `${tmpl}.html`)
-        let tpl = ''
-        try {
-          tpl = await fs.readFile(tplPath, 'utf8')
-        } catch (e) {
-          // fallback to standard template if missing
-          const fallback = path.join(process.cwd(), 'src', 'templates', 'standard.html')
-          tpl = await fs.readFile(fallback, 'utf8')
-        }
-
-        // Prepare view for Mustache
-        const view: any = { ...resume }
-        // Wrap skills and experience into objects so templates that use
-        // {{#skills}}...{{#skills}} and {{#experience}}...{{#experience}} render correctly.
-        if (resume.skills && typeof resume.skills === 'object') {
-          view.skills = {
-            skills: Object.entries(resume.skills).map(([k, v]) => ({ key: k, value: Array.isArray(v) ? v.join(', ') : String(v) }))
-          }
-        }
-        if (Array.isArray(resume.experience)) {
-          view.experience = { experience: resume.experience }
-        }
-
-        // Mustache render
-        const html = Mustache.render(tpl, view)
-
-        // Launch Puppeteer - use serverless-compatible setup on Vercel, regular puppeteer locally
-        const isVercel = process.env.VERCEL === '1'
-        let browser: any
-        
-        if (isVercel) {
-          // Production/Vercel: Use puppeteer-core with @sparticuz/chromium
-          const chromium = await import('@sparticuz/chromium')
-          const puppeteerModule = await import('puppeteer-core')
-          const puppeteer = puppeteerModule.default || puppeteerModule
-          // Convert chromium.headless (true | "shell") to Puppeteer's expected type (boolean | "new")
-          const headlessValue = chromium.default.headless === true || chromium.default.headless === 'shell' ? true : 'new'
-          browser = await puppeteer.launch({
-            args: chromium.default.args,
-            executablePath: await chromium.default.executablePath(),
-            headless: headlessValue,
-          })
-        } else {
-          // Local development: Use regular puppeteer
-          const puppeteerModule = await import('puppeteer')
-          const puppeteer = puppeteerModule.default || puppeteerModule
-          browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-          })
-        }
-        
-        const page = await browser.newPage()
-        await page.setContent(html, { waitUntil: 'networkidle0' })
-        const pdfBuf = await page.pdf({ format: 'Letter', printBackground: true, margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' } })
-        await browser.close()
-        return pdfBuf
-      } catch (err) {
-        throw err
-      }
-    }
-
+    // Generate a PDF from the resume JSON using pdfmake (no Chromium needed)
     let pdfBase64: string | undefined = undefined
     try {
-      const pdfBuf = await generatePdfBuffer(resumeData, template)
+      const pdfBuf = await generatePdfFromResume(resumeData, template)
       pdfBase64 = pdfBuf.toString('base64')
     } catch (pdfErr) {
       console.error('PDF generation failed', pdfErr)
