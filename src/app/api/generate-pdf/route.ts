@@ -55,11 +55,29 @@ export async function POST(request: NextRequest) {
         // Mustache render
         const html = Mustache.render(tpl, view)
 
-        // Launch Puppeteer
-        const puppeteerModule = await import('puppeteer')
-        // support default export or module itself
-        const puppeteer = (puppeteerModule && (puppeteerModule.default ?? puppeteerModule)) as any
-        const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+        // Launch Puppeteer - use serverless-compatible setup on Vercel, regular puppeteer locally
+        const isVercel = process.env.VERCEL === '1'
+        let browser: any
+        
+        if (isVercel) {
+          // Production/Vercel: Use puppeteer-core with @sparticuz/chromium
+          const chromium = await import('@sparticuz/chromium')
+          const puppeteerModule = await import('puppeteer-core')
+          const puppeteer = puppeteerModule.default || puppeteerModule
+          browser = await puppeteer.launch({
+            args: chromium.default.args,
+            executablePath: await chromium.default.executablePath(),
+            headless: chromium.default.headless,
+          })
+        } else {
+          // Local development: Use regular puppeteer
+          const puppeteerModule = await import('puppeteer')
+          const puppeteer = puppeteerModule.default || puppeteerModule
+          browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          })
+        }
+        
         const page = await browser.newPage()
         await page.setContent(html, { waitUntil: 'networkidle0' })
         const pdfBuf = await page.pdf({ format: 'Letter', printBackground: true, margin: { top: '15mm', bottom: '15mm', left: '10mm', right: '10mm' } })
