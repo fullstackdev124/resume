@@ -1,9 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatePdfFromResume } from "@/lib/pdfGenerator";
+import fs from 'fs/promises'
+import path from 'path'
+import Mustache from 'mustache'
 
 export async function POST(request: NextRequest) {
   try {
     const { json, template: requestedTemplate } = await request.json();
+
+    // Generate a PDF from the resume JSON using the chosen template
+    const generatePdfBuffer = async (resume: any, tmpl: string) => {
+      try {
+        // Read template file
+        const tplPath = path.join(process.cwd(), 'src', 'templates', `${tmpl}.html`)
+        let tpl = ''
+        try {
+          tpl = await fs.readFile(tplPath, 'utf8')
+        } catch (e) {
+          // fallback to standard-a template if missing
+          const fallback = path.join(process.cwd(), 'src', 'templates', 'standard-a.html')
+          tpl = await fs.readFile(fallback, 'utf8')
+        }
+
+        // Prepare view for Mustache
+        const view: any = { ...resume }
+        // Wrap skills and experience into objects so templates that use
+        // {{#skills}}...{{#skills}} and {{#experience}}...{{#experience}} render correctly.
+        if (resume.skills && typeof resume.skills === 'object') {
+          view.skills = {
+            skills: Object.entries(resume.skills).map(([k, v]) => ({ key: k, value: Array.isArray(v) ? v.join(', ') : String(v) }))
+          }
+        }
+        if (Array.isArray(resume.experience)) {
+          view.experience = { experience: resume.experience }
+        }
+
+        // Mustache render
+        const html = Mustache.render(tpl, view)
+
+        // Launch Puppeteer - use serverless-compatible setup on Vercel, regular puppeteer locally
+        const isVercel = process.env.VERCEL === '1'
+        let browser: any
+        
+        if (isVercel) {
+          // Production/Vercel: Use puppeteer-core with @sparticuz/chromium
+          const chromium = await import('@sparticuz/chromium')
+          const puppeteerModule = await import('puppeteer-core')
+          const puppeteer = puppeteerModule.default || puppeteerModule
+          // Convert chromium.headless (true | "shell") to Puppeteer's expected type (boolean | "new")
+          const headlessValue = chromium.default.headless === true || chromium.default.headless === 'shell' ? true : 'new'
+          browser = await puppeteer.launch({
+            args: chromium.default.args,
+            executablePath: await chromium.default.executablePath(),
+            headless: headlessValue,
+          })
+        } else {
+          // Local development: Use regular puppeteer
+          const puppeteerModule = await import('puppeteer')
+          const puppeteer = puppeteerModule.default || puppeteerModule
+          browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          })
+        }
+        
+        const page = await browser.newPage()
+        await page.setContent(html, { waitUntil: 'networkidle0' })
+        const pdfBuf = await page.pdf({ format: 'Letter', printBackground: true, margin: { top: '15mm', bottom: '15mm', left: '10mm', right: '10mm' } })
+        await browser.close()
+        return pdfBuf
+      } catch (err) {
+        throw err
+      }
+    }
 
     if (!json) {
       return NextResponse.json(
@@ -25,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     let pdfBase64: string | undefined = undefined
     try {
-      const pdfBuf = await generatePdfFromResume(json, template)
+      const pdfBuf = await generatePdfBuffer(json, template)
       pdfBase64 = pdfBuf.toString('base64')
     } catch (pdfErr) {
       console.error('PDF generation failed', pdfErr)

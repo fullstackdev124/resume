@@ -201,6 +201,16 @@
         margin-bottom:15px;
         border-left:4px solid var(--accent);
       }
+      .edu-top{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        flex-wrap:wrap;
+        gap:15px;
+      }
+      .edu-left{
+        flex:1;
+      }
       .edu-degree{
         font-size:17px;
         font-weight:700;
@@ -213,9 +223,13 @@
         font-weight:600;
         margin-bottom:4px;
       }
+      .edu-right{
+        text-align:right;
+      }
       .edu-date{
         font-size:13px;
         color:var(--text-light);
+        white-space:nowrap;
       }
     </style>
   </head>
@@ -289,9 +303,15 @@
         <h2 class="section-title">Education</h2>
         {{#education}}
         <div class="edu-item">
-          <div class="edu-degree">{{degree}}</div>
-          <div class="edu-school">{{school}}</div>
-          <div class="edu-date">{{graduationDate}}</div>
+          <div class="edu-top">
+            <div class="edu-left">
+              <div class="edu-degree">{{degree}}</div>
+              <div class="edu-school">{{school}}</div>
+            </div>
+            <div class="edu-right">
+              <div class="edu-date">{{graduationDate}}</div>
+            </div>
+          </div>
         </div>
         {{/education}}
       </div>

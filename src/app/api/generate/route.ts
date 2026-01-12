@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { generatePdfFromResume } from "@/lib/pdfGenerator";
+import OpenAI from "openai";
+import fs from 'fs/promises'
+import path from 'path'
+import Mustache from 'mustache'
 
+const useOpenAI = process.env.USE_OPENAI === 'true';
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
+const openai = useOpenAI ? new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || "",
+}) : null;
+
 
 // User-specific prompt additions
 const userPromptAdditions: Record<string, string> = {
@@ -371,9 +379,9 @@ Mandatory Inclusions
   - Client engineering teams(consulting delivery context)
 - Mentorship or technical leadership
 
-Bullet Counts(Strict): 11–13
+Bullet Counts(Strict): 11–15
  - Each bullet point should follow SAR structure especially include metrix
- - Word count should be 12~18.
+ - Word count should be 15~20.
 
 Product:
 Product name: Brex Travel.
@@ -413,9 +421,9 @@ Rules
     - Compliance/risk partners
   - Consulting-style delivery ownership
 
-Bullet Counts(Strict): 8-10
+Bullet Counts(Strict): 10-13
  - Each bullet point should follow SAR structure especially include metrix
- - Word count should be 10~13.
+ - Word count should be 15~20.
 
 Product:
 Product name: MyTrellis.
@@ -444,9 +452,9 @@ Rules
 - Explicit inclusion of:
   - Payments, checkout, fraud, compliance, or scale concepts
 
-Bullet Counts(Strict): 5-7
+Bullet Counts(Strict): 8-10
  - Each bullet point should follow SAR structure especially include metrix
- - Word count should be 8~11.
+ - Word count should be 15~20.
 
 Product:
 Product name: Flourish Cash.
@@ -525,8 +533,8 @@ Rules
   - Stakeholder interaction
 
 Bullet Counts(Strict): 8-10
- - Each bullet point should follow SAR structure especially include metrix
- - Word count should be 10~13.
+ - Every bullet point should follow SAR structure especially include metrix
+ - Word count of every bullet point should be 23~28 and don't include any special characters.
 
 Product:
 Product Name: Digital Staffing Marketplace Platform (Medely).
@@ -553,9 +561,9 @@ Rules
 - Reflect technologies appropriate to the date range
 - Remember. Healthcare tone in every bullet
 
-Bullet Counts(Strict): 5-7
- - Each bullet point should follow SAR structure especially include metrix
- - Word count should be 8~11.
+Bullet Counts(Strict): 5-6
+ - Every bullet point should follow SAR structure especially include metrix
+ - Word count of every bullet point should be 23~28 and don't include any special characters.
 
 Product:
 Product Name: Women’s Health and Maternity Services (Prime Healthcare), a hospital-based and outpatient clinical service line offered across selected facilities.
@@ -580,6 +588,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Job description and resume content are required" },
         { status: 400 }
+      );
+    }
+
+    // Check API key based on which provider is being used
+    if (useOpenAI && !process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: "OpenAI API key is not configured" },
+        { status: 500 }
       );
     }
 
@@ -1011,8 +1027,32 @@ JSON SCHEMA
 
 Return ONLY valid JSON, no additional text, no markdown formatting, no code blocks.`;
 
+  let jsonText: string;
+    
+  if (useOpenAI) {
+    // OpenAI API call
+    const MODEL = process.env.OPENAI_MODEL || "gpt-4o"
+    const completion = await openai!.chat.completions.create({
+      model: MODEL,
+      messages: [
+        {
+          role: "user",
+          content: masterPrompt,
+        },
+      ],
+      max_completion_tokens: 4096,
+      temperature: 0.7,
+    });
+
+    // Extract the text content from OpenAI response
+    jsonText = completion.choices[0]?.message?.content || "";
+    if (!jsonText) {
+      throw new Error("Empty response from OpenAI API");
+    }
+  } else {
+    // Anthropic API call
     const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5-20250929"
-    const message = await anthropic.messages.create({
+    const message = await anthropic!.messages.create({
       model: MODEL,
       max_tokens: 4096,
       messages: [
@@ -1023,17 +1063,20 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
       ],
     });
 
-    // Extract the text content from the response
+    // Extract the text content from Anthropic response
     const content = message.content[0];
     if (content.type !== "text") {
       throw new Error("Unexpected response type from Anthropic API");
     }
+    jsonText = content.text;
+  }
+
 
     // Parse the JSON response
     let analysisResult;
-    try {
+   try {
       // Clean the response - remove markdown code blocks if present
-      let jsonText = content.text.trim();
+      jsonText = jsonText.trim();
       if (jsonText.startsWith("```json")) {
         jsonText = jsonText.replace(/```json\n?/g, "").replace(/```\n?/g, "");
       } else if (jsonText.startsWith("```")) {
@@ -1042,11 +1085,11 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
       analysisResult = JSON.parse(jsonText);
     } catch (parseError) {
       // If parsing fails, return a structured error response
-      console.error("Failed to parse JSON response:", content.text);
+      console.error("Failed to parse JSON response:", jsonText);
       return NextResponse.json(
         {
           error: "Failed to parse AI response",
-          rawResponse: content.text,
+          rawResponse: jsonText,
         },
         { status: 500 }
       );
@@ -1127,10 +1170,76 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
     // Template is provided in the request; default to 'standard' if missing
     const template = requestedTemplate || 'standard'
 
+
+    // Generate a PDF from the resume JSON using the chosen template by rendering HTML + headless Chromium
+    const generatePdfBuffer = async (resume: any, tmpl: string) => {
+      try {
+        // Read template file
+        const tplPath = path.join(process.cwd(), 'src', 'templates', `${tmpl}.html`)
+        let tpl = ''
+        try {
+          tpl = await fs.readFile(tplPath, 'utf8')
+        } catch (e) {
+          // fallback to standard template if missing
+          const fallback = path.join(process.cwd(), 'src', 'templates', 'standard.html')
+          tpl = await fs.readFile(fallback, 'utf8')
+        }
+
+        // Prepare view for Mustache
+        const view: any = { ...resume }
+        // Wrap skills and experience into objects so templates that use
+        // {{#skills}}...{{#skills}} and {{#experience}}...{{#experience}} render correctly.
+        if (resume.skills && typeof resume.skills === 'object') {
+          view.skills = {
+            skills: Object.entries(resume.skills).map(([k, v]) => ({ key: k, value: Array.isArray(v) ? v.join(', ') : String(v) }))
+          }
+        }
+        if (Array.isArray(resume.experience)) {
+          view.experience = { experience: resume.experience }
+        }
+
+        // Mustache render
+        const html = Mustache.render(tpl, view)
+
+        // Launch Puppeteer - use serverless-compatible setup on Vercel, regular puppeteer locally
+        const isVercel = process.env.VERCEL === '1'
+        let browser: any
+        
+        if (isVercel) {
+          // Production/Vercel: Use puppeteer-core with @sparticuz/chromium
+          const chromium = await import('@sparticuz/chromium')
+          const puppeteerModule = await import('puppeteer-core')
+          const puppeteer = puppeteerModule.default || puppeteerModule
+          // Convert chromium.headless (true | "shell") to Puppeteer's expected type (boolean | "new")
+          const headlessValue = chromium.default.headless === true || chromium.default.headless === 'shell' ? true : 'new'
+          browser = await puppeteer.launch({
+            args: chromium.default.args,
+            executablePath: await chromium.default.executablePath(),
+            headless: headlessValue,
+          })
+        } else {
+          // Local development: Use regular puppeteer
+          const puppeteerModule = await import('puppeteer')
+          const puppeteer = puppeteerModule.default || puppeteerModule
+          browser = await puppeteer.launch({
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          })
+        }
+        
+        const page = await browser.newPage()
+        await page.setContent(html, { waitUntil: 'networkidle0' })
+        const pdfBuf = await page.pdf({ format: 'Letter', printBackground: true, margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' } })
+        await browser.close()
+        return pdfBuf
+      } catch (err) {
+        throw err
+      }
+    }
+
     // Generate a PDF from the resume JSON using pdfmake (no Chromium needed)
     let pdfBase64: string | undefined = undefined
     try {
-      const pdfBuf = await generatePdfFromResume(resumeData, template)
+      const pdfBuf = await generatePdfBuffer(resumeData, template)
       pdfBase64 = pdfBuf.toString('base64')
     } catch (pdfErr) {
       console.error('PDF generation failed', pdfErr)

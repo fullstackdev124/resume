@@ -11,10 +11,10 @@ Senior Full Stack Engineer
 Nassau, NY | (561) 264-2813 | kaylarelyease@gmail.com
 
 PROFESSIONAL EXPERIENCE
-BetterHelp Jan 2022 – Present
+BetterHelp | Jan 2022 – Dec 2025
 Senior Full Stack Engineer | Remote(US)
 
-Optum, UnitedHealth Group Aug 2018 – Dec 2021
+Optum, UnitedHealth Group | Aug 2018 – Dec 2021
 Minneapolis, MN
 
 MojoTech May 2015 – Jul 2018
@@ -32,7 +32,7 @@ E-mail adriannabarrientoscc@gmail.com
 WORK HISTORY
 
 Senior Software Engineer
-Luxoft | 10/2022 – Present | New York, NY
+Luxoft | 10/2022 – 12/2025 | New York, NY
 
 IncWorx Consulting | 08/2019 – 09/2022 | Schaumburg, IL
 
@@ -51,7 +51,7 @@ E-mail adriannabarrientoscc@gmail.com
 WORK HISTORY
 
 Senior Software Engineer
-Luxoft | 10/2022 – Present | New York, NY
+Luxoft | 10/2022 – 12/2025 | New York, NY
 
 IncWorx Consulting | 08/2019 – 09/2022 | Schaumburg, IL
 
@@ -64,7 +64,7 @@ University of North Texas | 08/2012 – 05/2016 | Dallas`,
 
 'adonish495@gmail.com': `Adonis Hill
 Senior Full Stack Engineer
-adonish495@gmail.com | Hutto, TX 78634 | (818) 351-9995
+adonish495@gmail.com | Hutto, TX 78634 | (650) 451–5345
 
 PROFESSIONAL EXPERIENCE
 Brex | San Francisco, CA
@@ -116,6 +116,9 @@ export default function Page() {
   const [generated, setGenerated] = useState<string | null>(null)
   const [pdfBase64, setPdfBase64] = useState<string | null>(null)
   const [resumeData, setResumeData] = useState<any>(null)
+  const [coverLetter, setCoverLetter] = useState<string | null>(null)
+  const [coverLetterCopied, setCoverLetterCopied] = useState(false)
+  const [generatingCoverLetter, setGeneratingCoverLetter] = useState(false)
   const [loading, setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
   const [identifierWarning, setIdentifierWarning] = useState<string | null>(null)
@@ -129,6 +132,8 @@ export default function Page() {
     setLoading(true)
     setGenerated(null)
     setPdfBase64(null) // Hide download button immediately
+    setCoverLetter(null) // Clear previous cover letter
+    setCoverLetterCopied(false) // Reset copy state
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -136,11 +141,12 @@ export default function Page() {
         body: JSON.stringify({ account, jd: jobDesc, resumeContent: resumes[account], template: templateMap[account] }),
       })
       const data = await res.json()
-      // route returns resume JSON and optional pdfBase64
+      // route returns resume JSON, optional pdfBase64, and cover letter
       const resume = data.resume || data
       setGenerated(JSON.stringify(resume, null, 2) || 'No resume returned')
       setResumeData(resume)
       setPdfBase64(data.pdfBase64 || null)
+      // Don't set cover letter here - it will be generated separately
     } catch (e) {
       setGenerated('Error generating resume')
     } finally {
@@ -175,6 +181,41 @@ export default function Page() {
       } else {
         setJsonResumeData(validation.data)
       }
+    }
+  }
+
+  const handleGenerateCoverLetter = async () => {
+    if (!resumeData) {
+      alert('Please generate a resume first.')
+      return
+    }
+    if (!jobDesc) {
+      alert('Please enter a job description first.')
+      return
+    }
+
+    setGeneratingCoverLetter(true)
+    setCoverLetter(null)
+    try {
+      const res = await fetch('/api/generate-cover-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          resumeJson: resumeData,
+          jobDescription: jobDesc
+        }),
+      })
+      const data = await res.json()
+      if (data.error) {
+        alert(`Failed to generate cover letter: ${data.error}`)
+      } else if (data.coverLetter) {
+        setCoverLetter(data.coverLetter)
+      }
+    } catch (e) {
+      alert('Failed to generate cover letter')
+      console.error(e)
+    } finally {
+      setGeneratingCoverLetter(false)
     }
   }
 
@@ -228,7 +269,15 @@ export default function Page() {
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Resume Updater</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Resume Updater</h1>
+        <button 
+          onClick={() => setShowJsonInput(!showJsonInput)} 
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+        >
+          {showJsonInput ? 'Hide' : 'Generate from JSON'}
+        </button>
+      </div>
 
       <div className="grid gap-6" style={{ gridTemplateColumns: '30% 70%' }}>
         <div>
@@ -239,144 +288,176 @@ export default function Page() {
         </div>
 
         <div>
-          <label className="block text-xl font-semibold">Identifier</label>
-          <input value={identifier} onChange={(e) => {
-            setIdentifier(e.target.value)
-            setIdentifierWarning(null)
-          }} placeholder="file-name-or-id" className="mt-1 p-2 border rounded w-full text-base" />
-          {identifierWarning && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
-              {identifierWarning}
-            </div>
-          )}
-
-          <label className="block text-xl font-semibold mt-4">Job description</label>
-          <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} rows={12} className="mt-1 p-2 border rounded w-full text-base" />
-
-          <div className="mt-4 flex items-start justify-between">
-            <div>
-              <button onClick={handleGenerate} className="px-4 py-2 bg-blue-600 text-white rounded" disabled={loading}>
-                {loading ? 'Generating...' : 'Generate Updated Resume'}
-              </button>
-            </div>
-
-            <div>
-              {pdfBase64 && (
-                <button
-                  className="ml-4 px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={downloading}
-                  onClick={async () => {
-                    // Check if identifier is empty
-                    if (!identifier || !identifier.trim()) {
-                      setIdentifierWarning('Please enter an identifier before downloading.')
-                      return
-                    }
-                    
-                    setIdentifierWarning(null)
-                    setDownloading(true)
-                    
-                    // Save resume data to Supabase
-                    if (resumeData) {
-                      try {
-                        await fetch('/api/save-resume', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ 
-                            json: resumeData,
-                            identifier: identifier && identifier.trim() ? identifier.trim() : null
-                          }),
-                        })
-                      } catch (error) {
-                        console.error('Failed to save resume to Supabase:', error)
-                        // Continue with download even if save fails
-                      }
-                    }
-
-                    // Download the PDF
-                    const link = document.createElement('a')
-                    link.href = `data:application/pdf;base64,${pdfBase64}`
-                    
-                    // Extract first name from resume data
-                    let firstName = ''
-                    if (resumeData?.name) {
-                      const nameParts = resumeData.name.trim().split(/\s+/)
-                      firstName = nameParts[0] || ''
-                    }
-                    
-                    // Use first name + identifier as filename
-                    const identifierPart = identifier && identifier.trim() ? identifier.trim() : ''
-                    const filename = identifierPart 
-                      ? `${firstName}-resume.pdf`
-                      : firstName 
-                        ? `${firstName}-resume.pdf`
-                        : 'resume.pdf'
-                    
-                    link.download = filename
-                    link.click()
-                    // initialize identifier after download
-                    setIdentifier('')
-                    setDownloading(false)
-                  }}
-                >
-                  {downloading ? 'Downloading...' : 'Download PDF'}
-                </button>
+          {!showJsonInput && (
+            <>
+              <label className="block text-xl font-semibold">Identifier</label>
+              <input value={identifier} onChange={(e) => {
+                setIdentifier(e.target.value)
+                setIdentifierWarning(null)
+              }} placeholder="file-name-or-id" className="mt-1 p-2 border rounded w-full text-base" />
+              {identifierWarning && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
+                  {identifierWarning}
+                </div>
               )}
-            </div>
-          </div>
 
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold">Generated Resume</h3>
-            <div className="mt-2 p-4 border rounded bg-white text-sm whitespace-pre-wrap">
-              {generated ?? 'No generated resume yet.'}
-            </div>
-          </div>
+              <label className="block text-xl font-semibold mt-4">Job description</label>
+              <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} rows={12} className="mt-1 p-2 border rounded w-full text-base" />
 
-          <div className="mt-8 border-t pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Generate from JSON</h3>
-              <button 
-                onClick={() => setShowJsonInput(!showJsonInput)} 
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-              >
-                {showJsonInput ? 'Hide' : 'Generate from JSON'}
-              </button>
-            </div>
+              <div className="mt-4 flex items-start justify-between">
+                <div>
+                  <button onClick={handleGenerate} className="px-4 py-2 bg-blue-600 text-white rounded" disabled={loading}>
+                    {loading ? 'Generating...' : 'Generate Updated Resume'}
+                  </button>
+                </div>
 
-            {showJsonInput && (
-              <div>
-                <label className="block text-sm font-semibold mb-2">Paste Resume JSON</label>
-                <textarea 
-                  value={jsonInput} 
-                  onChange={(e) => handleJsonInputChange(e.target.value)} 
-                  rows={12} 
-                  className="w-full p-2 border rounded text-sm font-mono"
-                  placeholder='{"name": "John Doe", "email": "john@example.com", "experience": [...], ...}'
-                />
-                {jsonError && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                    {jsonError}
-                  </div>
-                )}
-                {jsonResumeData && !jsonError && (
-                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
-                    ✓ Valid JSON structure
-                  </div>
-                )}
-                
-                {jsonResumeData && !jsonError && (
-                  <div className="mt-4">
+                <div>
+                  {pdfBase64 && (
                     <button
-                      onClick={handleDownloadJsonPdf}
-                      className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={generatingJsonPdf}
+                      className="ml-4 px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={downloading}
+                      onClick={async () => {
+                        // Check if identifier is empty
+                        if (!identifier || !identifier.trim()) {
+                          setIdentifierWarning('Please enter an identifier before downloading.')
+                          return
+                        }
+                        
+                        setIdentifierWarning(null)
+                        setDownloading(true)
+                        
+                        // Save resume data to Supabase
+                        if (resumeData) {
+                          try {
+                            await fetch('/api/save-resume', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ 
+                                json: resumeData,
+                                identifier: identifier && identifier.trim() ? identifier.trim() : null
+                              }),
+                            })
+                          } catch (error) {
+                            console.error('Failed to save resume to Supabase:', error)
+                            // Continue with download even if save fails
+                          }
+                        }
+
+                        // Download the PDF
+                        const link = document.createElement('a')
+                        link.href = `data:application/pdf;base64,${pdfBase64}`
+                        
+                        // Extract first name from resume data
+                        let firstName = ''
+                        if (resumeData?.name) {
+                          const nameParts = resumeData.name.trim().split(/\s+/)
+                          firstName = nameParts[0] || ''
+                        }
+                        
+                        // Use first name + identifier as filename
+                        const identifierPart = identifier && identifier.trim() ? identifier.trim() : ''
+                        const filename = identifierPart 
+                          ? `${firstName}-resume.pdf`
+                          : firstName 
+                            ? `${firstName}-resume.pdf`
+                            : 'resume.pdf'
+                        
+                        link.download = filename
+                        link.click()
+                        // initialize identifier after download
+                        setIdentifier('')
+                        setDownloading(false)
+                      }}
                     >
-                      {generatingJsonPdf ? 'Generating PDF...' : 'Download PDF'}
+                      {downloading ? 'Downloading...' : 'Download PDF'}
                     </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <h3 className="text-lg font-semibold">Generated Resume</h3>
+                <div className="mt-2 p-4 border rounded bg-white text-sm whitespace-pre-wrap overflow-y-auto" style={{ maxHeight: '200px' }}>
+                  {generated ?? 'No generated resume yet.'}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold">Cover Letter</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleGenerateCoverLetter}
+                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                      disabled={generatingCoverLetter || !resumeData}
+                    >
+                      {generatingCoverLetter ? 'Generating...' : 'Generate Cover Letter'}
+                    </button>
+                    {coverLetter && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(coverLetter)
+                            setCoverLetterCopied(true)
+                            setTimeout(() => setCoverLetterCopied(false), 2000)
+                          } catch (err) {
+                            console.error('Failed to copy cover letter:', err)
+                          }
+                        }}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {coverLetterCopied ? 'Copied!' : 'Copy to Clipboard'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {coverLetter ? (
+                  <div className="mt-2 p-4 border rounded bg-white text-sm whitespace-pre-wrap">
+                    {coverLetter}
+                  </div>
+                ) : (
+                  <div className="mt-2 p-4 border rounded bg-gray-50 text-sm text-gray-500">
+                    Click "Generate Cover Letter" to create a cover letter based on your resume and job description.
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </>
+          )}
+
+          {showJsonInput && (
+            <div>
+              <label className="block text-sm font-semibold mb-2">Paste Resume JSON</label>
+              <textarea 
+                value={jsonInput} 
+                onChange={(e) => handleJsonInputChange(e.target.value)} 
+                rows={12} 
+                className="w-full p-2 border rounded text-sm font-mono"
+                placeholder='{"name": "John Doe", "email": "john@example.com", "experience": [...], ...}'
+              />
+              {jsonError && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  {jsonError}
+                </div>
+              )}
+              {jsonResumeData && !jsonError && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+                  ✓ Valid JSON structure
+                </div>
+              )}
+              
+              {jsonResumeData && !jsonError && (
+                <div className="mt-4">
+                  <button
+                    onClick={handleDownloadJsonPdf}
+                    className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={generatingJsonPdf}
+                  >
+                    {generatingJsonPdf ? 'Generating PDF...' : 'Download PDF'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </main>
