@@ -501,9 +501,10 @@ Mandatory Inclusions
   - Clinical or healthcare SMEs
 - Mentorship or technical leadership
 
-Bullet Counts(Strict): 11–13
- - Each bullet point should follow SAR structure especially include metrix
- - Word count should be 12~18.
+Bullet (Strict):
+ - Bullet point count must be 11 ~ 13
+ - Every bullet point must follow SAR structure especially include metrix
+ - Word count of every bullet point must be 23~28 and don't include any special characters except %.
 
 Product:
 Product Name: Insurance Eligibility Verification Automation (AKASA, Unified Automation®).
@@ -532,9 +533,10 @@ Rules
   - Cross-functional collaboration
   - Stakeholder interaction
 
-Bullet Counts(Strict): 8-10
- - Every bullet point should follow SAR structure especially include metrix
- - Word count of every bullet point should be 23~28 and don't include any special characters.
+Bullet (Strict):
+ - Bullet point count must be 8 ~ 10
+ - Every bullet point must follow SAR structure especially include metrix
+ - Word count of every bullet point must be 23~28 and don't include any special characters except %
 
 Product:
 Product Name: Digital Staffing Marketplace Platform (Medely).
@@ -561,9 +563,10 @@ Rules
 - Reflect technologies appropriate to the date range
 - Remember. Healthcare tone in every bullet
 
-Bullet Counts(Strict): 5-6
- - Every bullet point should follow SAR structure especially include metrix
- - Word count of every bullet point should be 23~28 and don't include any special characters.
+Bullet (Strict):
+ - Bullet point count must be 5 ~ 6
+ - Every bullet point must follow SAR structure especially include metrix
+ - Word count of every bullet point must be 23~28 and don't include any special characters except %
 
 Product:
 Product Name: Women’s Health and Maternity Services (Prime Healthcare), a hospital-based and outpatient clinical service line offered across selected facilities.

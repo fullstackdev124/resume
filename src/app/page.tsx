@@ -64,7 +64,7 @@ University of North Texas | 08/2012 – 05/2016 | Dallas`,
 
 'adonish495@gmail.com': `Adonis Hill
 Senior Full Stack Engineer
-adonish495@gmail.com | Hutto, TX 78634 | (650) 451–5345
+adonish495@gmail.com | Hutto, TX 78634 | (512) 588-2215
 
 PROFESSIONAL EXPERIENCE
 Brex | San Francisco, CA
@@ -127,6 +127,68 @@ export default function Page() {
   const [jsonError, setJsonError] = useState<string | null>(null)
   const [jsonResumeData, setJsonResumeData] = useState<any>(null)
   const [generatingJsonPdf, setGeneratingJsonPdf] = useState(false)
+  const [showInterview, setShowInterview] = useState(false)
+  const [interviewTitle, setInterviewTitle] = useState('')
+  const [interviewCompany, setInterviewCompany] = useState('')
+  const [interviewRole, setInterviewRole] = useState('')
+  const [savingSchedule, setSavingSchedule] = useState(false)
+  const [scheduleError, setScheduleError] = useState<string | null>(null)
+  const [scheduleSuccess, setScheduleSuccess] = useState(false)
+  const [missingInterviews, setMissingInterviews] = useState<any[]>([])
+  const [loadingMissingInterviews, setLoadingMissingInterviews] = useState(false)
+  const [missingInterviewsError, setMissingInterviewsError] = useState<string | null>(null)
+  const [myInterviews, setMyInterviews] = useState<any[]>([])
+  const [loadingMyInterviews, setLoadingMyInterviews] = useState(false)
+  const [myInterviewsError, setMyInterviewsError] = useState<string | null>(null)
+  const [lastViewedSection, setLastViewedSection] = useState<'my' | 'missing' | null>(null)
+  const [editingInterviewId, setEditingInterviewId] = useState<number | null>(null)
+  const [editingTitle, setEditingTitle] = useState('')
+  const [editingCompany, setEditingCompany] = useState('')
+  const [editingRole, setEditingRole] = useState('')
+  const [updatingSchedule, setUpdatingSchedule] = useState(false)
+  const [deletingInterviewId, setDeletingInterviewId] = useState<number | null>(null)
+  const [biddingScheduleId, setBiddingScheduleId] = useState<number | null>(null)
+  const [bidError, setBidError] = useState<string | null>(null)
+  const [bidSuccess, setBidSuccess] = useState(false)
+
+  // Helper function to fetch my interviews
+  const fetchMyInterviews = async () => {
+    // Extract email prefix
+    let emailPrefix = account
+    if (account.includes('@')) {
+      const emailPart = account.split('@')[0]
+      emailPrefix = emailPart.trim()
+    } else if (account.includes(' ')) {
+      const parts = account.split(' ')
+      emailPrefix = parts[0].trim()
+    }
+
+    setLoadingMyInterviews(true)
+    setMyInterviewsError(null)
+    // Clear missing interviews list to show only my interviews
+    setMissingInterviews([])
+    setMissingInterviewsError(null)
+
+    try {
+      const res = await fetch('/api/get-my-interviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailPrefix }),
+      })
+
+      const data = await res.json()
+      if (data.error) {
+        setMyInterviewsError(data.error)
+      } else {
+        setMyInterviews(data.schedules || [])
+      }
+    } catch (e) {
+      setMyInterviewsError('Failed to fetch my interviews')
+      console.error(e)
+    } finally {
+      setLoadingMyInterviews(false)
+    }
+  }
 
   const handleGenerate = async () => {
     setLoading(true)
@@ -271,12 +333,54 @@ export default function Page() {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Resume Updater</h1>
-        <button 
-          onClick={() => setShowJsonInput(!showJsonInput)} 
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-        >
-          {showJsonInput ? 'Hide' : 'Generate from JSON'}
-        </button>
+        <div className="flex gap-2">
+          {showInterview ? (
+            <button 
+              onClick={() => setShowInterview(false)}
+              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Back
+            </button>
+          ) : (
+            <>
+              <button 
+                onClick={() => {
+                  // Initialize/reset form state
+                  setInterviewTitle('')
+                  setInterviewCompany('')
+                  setInterviewRole('')
+                  setScheduleError(null)
+                  setScheduleSuccess(false)
+                  setMissingInterviews([])
+                  setMyInterviews([])
+                  setLoadingMissingInterviews(false)
+                  setLoadingMyInterviews(false)
+                  setMissingInterviewsError(null)
+                  setMyInterviewsError(null)
+                  setLastViewedSection(null)
+                  setEditingInterviewId(null)
+                  setEditingTitle('')
+                  setEditingCompany('')
+                  setEditingRole('')
+                  setDeletingInterviewId(null)
+                  setBiddingScheduleId(null)
+                  setBidError(null)
+                  setBidSuccess(false)
+                  setShowInterview(true)
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              >
+                Interview
+              </button>
+              <button 
+                onClick={() => setShowJsonInput(!showJsonInput)} 
+                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              >
+                {showJsonInput ? 'Hide' : 'Generate from JSON'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6" style={{ gridTemplateColumns: '30% 70%' }}>
@@ -288,13 +392,490 @@ export default function Page() {
         </div>
 
         <div>
+          {showInterview ? (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Add Interview Schedule</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={interviewTitle}
+                    onChange={(e) => {
+                      setInterviewTitle(e.target.value)
+                      setScheduleError(null)
+                      setScheduleSuccess(false)
+                    }}
+                    placeholder="Enter interview title"
+                    className="w-full p-2 border rounded text-base"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Company <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={interviewCompany}
+                    onChange={(e) => {
+                      setInterviewCompany(e.target.value)
+                      setScheduleError(null)
+                      setScheduleSuccess(false)
+                    }}
+                    placeholder="Enter company name"
+                    className="w-full p-2 border rounded text-base"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Role
+                  </label>
+                  <input
+                    type="text"
+                    value={interviewRole}
+                    onChange={(e) => {
+                      setInterviewRole(e.target.value)
+                      setScheduleError(null)
+                      setScheduleSuccess(false)
+                    }}
+                    placeholder="Enter role (optional)"
+                    className="w-full p-2 border rounded text-base"
+                  />
+                </div>
+
+                {scheduleError && (
+                  <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                    {scheduleError}
+                  </div>
+                )}
+
+                {scheduleSuccess && (
+                  <div className="p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+                    Schedule added successfully!
+                  </div>
+                )}
+
+                <button
+                  onClick={async () => {
+                    if (!interviewTitle.trim() || !interviewCompany.trim()) {
+                      setScheduleError('Title and Company are required')
+                      return
+                    }
+
+                    setSavingSchedule(true)
+                    setScheduleError(null)
+                    setScheduleSuccess(false)
+
+                    try {
+                      // Extract email prefix (text before @)
+                      let emailPrefix = account
+                      if (account.includes('@')) {
+                        const emailPart = account.split('@')[0]
+                        emailPrefix = emailPart.trim()
+                      } else if (account.includes(' ')) {
+                        // Handle cases like "email - Description"
+                        const parts = account.split(' ')
+                        emailPrefix = parts[0].trim()
+                      }
+
+                      const res = await fetch('/api/save-schedule', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          email: emailPrefix,
+                          title: interviewTitle.trim(),
+                          company: interviewCompany.trim(),
+                          role: interviewRole.trim() || null,
+                        }),
+                      })
+
+                      const data = await res.json()
+                      if (data.error) {
+                        setScheduleError(data.error)
+                      } else {
+                        setScheduleSuccess(true)
+                        // Clear form
+                        setInterviewTitle('')
+                        setInterviewCompany('')
+                        setInterviewRole('')
+                        // Clear success message after 3 seconds
+                        setTimeout(() => setScheduleSuccess(false), 3000)
+                      }
+                    } catch (e) {
+                      setScheduleError('Failed to save schedule')
+                      console.error(e)
+                    } finally {
+                      setSavingSchedule(false)
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={savingSchedule || !interviewTitle.trim() || !interviewCompany.trim()}
+                >
+                  {savingSchedule ? 'Adding...' : 'Add'}
+                </button>
+
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={async () => {
+                        setLastViewedSection('my')
+                        await fetchMyInterviews()
+                      }}
+                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={loadingMyInterviews}
+                    >
+                      {loadingMyInterviews ? 'Loading...' : 'Show My Interview'}
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        setLastViewedSection('missing')
+                        // Extract email prefix
+                        let emailPrefix = account
+                        if (account.includes('@')) {
+                          const emailPart = account.split('@')[0]
+                          emailPrefix = emailPart.trim()
+                        } else if (account.includes(' ')) {
+                          const parts = account.split(' ')
+                          emailPrefix = parts[0].trim()
+                        }
+
+                        setLoadingMissingInterviews(true)
+                        setMissingInterviewsError(null)
+                        setMissingInterviews([])
+                        // Clear my interviews list to show only missing interviews
+                        setMyInterviews([])
+                        setMyInterviewsError(null)
+
+                        try {
+                          const res = await fetch('/api/get-missing-interviews', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: emailPrefix }),
+                          })
+
+                          const data = await res.json()
+                          if (data.error) {
+                            setMissingInterviewsError(data.error)
+                          } else {
+                            setMissingInterviews(data.missingSchedules || [])
+                          }
+                        } catch (e) {
+                          setMissingInterviewsError('Failed to fetch missing interviews')
+                          console.error(e)
+                        } finally {
+                          setLoadingMissingInterviews(false)
+                        }
+                      }}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={loadingMissingInterviews}
+                    >
+                      {loadingMissingInterviews ? 'Loading...' : 'Show Missing Interview'}
+                    </button>
+                  </div>
+
+                  {myInterviewsError && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                      {myInterviewsError}
+                    </div>
+                  )}
+
+                  {myInterviews.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-lg font-semibold mb-2">My Interviews</h3>
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {myInterviews.map((interview, index) => (
+                          <div key={interview.id || index} className="p-3 border rounded bg-white">
+                            {editingInterviewId === interview.id ? (
+                              // Edit mode
+                              <div className="space-y-2">
+                                <input
+                                  type="text"
+                                  value={editingTitle}
+                                  onChange={(e) => setEditingTitle(e.target.value)}
+                                  placeholder="Title"
+                                  className="w-full px-2 py-1 border rounded text-sm"
+                                />
+                                <input
+                                  type="text"
+                                  value={editingCompany}
+                                  onChange={(e) => setEditingCompany(e.target.value)}
+                                  placeholder="Company *"
+                                  className="w-full px-2 py-1 border rounded text-sm"
+                                />
+                                <input
+                                  type="text"
+                                  value={editingRole}
+                                  onChange={(e) => setEditingRole(e.target.value)}
+                                  placeholder="Role (optional)"
+                                  className="w-full px-2 py-1 border rounded text-sm"
+                                />
+                                <div className="flex gap-2 mt-2">
+                                  <button
+                                    onClick={async () => {
+                                      if (!editingTitle.trim() || !editingCompany.trim()) {
+                                        setMyInterviewsError('Title and Company are required')
+                                        return
+                                      }
+
+                                      setUpdatingSchedule(true)
+                                      setMyInterviewsError(null)
+
+                                      try {
+                                        const res = await fetch('/api/update-schedule', {
+                                          method: 'PUT',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            id: interview.id,
+                                            title: editingTitle.trim(),
+                                            company: editingCompany.trim(),
+                                            role: editingRole.trim() || null,
+                                          }),
+                                        })
+
+                                        const data = await res.json()
+                                        if (data.error) {
+                                          setMyInterviewsError(data.error)
+                                        } else {
+                                          setEditingInterviewId(null)
+                                          setEditingTitle('')
+                                          setEditingCompany('')
+                                          setEditingRole('')
+                                          await fetchMyInterviews()
+                                        }
+                                      } catch (e) {
+                                        setMyInterviewsError('Failed to update schedule')
+                                        console.error(e)
+                                      } finally {
+                                        setUpdatingSchedule(false)
+                                      }
+                                    }}
+                                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={updatingSchedule || !editingTitle.trim() || !editingCompany.trim()}
+                                  >
+                                    {updatingSchedule ? 'Saving...' : 'Save'}
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingInterviewId(null)
+                                      setEditingTitle('')
+                                      setEditingCompany('')
+                                      setEditingRole('')
+                                      setMyInterviewsError(null)
+                                    }}
+                                    className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 text-sm"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              // View mode
+                              <>
+                                <div className="font-semibold">{interview.title}</div>
+                                <div className="text-sm text-gray-600">{interview.company}</div>
+                                {interview.role && (
+                                  <div className="text-sm text-gray-500">Role: {interview.role}</div>
+                                )}
+                                {interview.created_at && (
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    Added: {new Date(interview.created_at).toLocaleDateString()}
+                                  </div>
+                                )}
+                                <div className="flex gap-2 mt-2">
+                                  <button
+                                    onClick={() => {
+                                      setEditingInterviewId(interview.id)
+                                      setEditingTitle(interview.title || '')
+                                      setEditingCompany(interview.company || '')
+                                      setEditingRole(interview.role || '')
+                                      setMyInterviewsError(null)
+                                    }}
+                                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (confirm('Are you sure you want to delete this interview?')) {
+                                        setDeletingInterviewId(interview.id)
+                                        setMyInterviewsError(null)
+
+                                        try {
+                                          const res = await fetch('/api/delete-schedule', {
+                                            method: 'DELETE',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ id: interview.id }),
+                                          })
+
+                                          const data = await res.json()
+                                          if (data.error) {
+                                            setMyInterviewsError(data.error)
+                                          } else {
+                                            await fetchMyInterviews()
+                                          }
+                                        } catch (e) {
+                                          setMyInterviewsError('Failed to delete schedule')
+                                          console.error(e)
+                                        } finally {
+                                          setDeletingInterviewId(null)
+                                        }
+                                      }
+                                    }}
+                                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={deletingInterviewId === interview.id}
+                                  >
+                                    {deletingInterviewId === interview.id ? 'Deleting...' : 'Delete'}
+                                  </button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {myInterviews.length === 0 && !loadingMyInterviews && !myInterviewsError && lastViewedSection === 'my' && (
+                    <div className="mt-4 p-3 border rounded bg-gray-50 text-sm text-gray-500">
+                      No interviews found. Click "Show My Interview" to view your schedules.
+                    </div>
+                  )}
+
+                  {missingInterviewsError && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                      {missingInterviewsError}
+                    </div>
+                  )}
+
+                  {missingInterviews.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="text-lg font-semibold mb-2">Missing Interviews</h3>
+                      {bidError && (
+                        <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                          {bidError}
+                        </div>
+                      )}
+                      {bidSuccess && (
+                        <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
+                          Bid placed successfully!
+                        </div>
+                      )}
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {missingInterviews.map((interview, index) => (
+                          <div key={interview.id || index} className="p-3 border rounded bg-white">
+                            <div className="font-semibold">{interview.title}</div>
+                            <div className="text-sm text-gray-600">{interview.company}</div>
+                            {interview.role && (
+                              <div className="text-sm text-gray-500">Role: {interview.role}</div>
+                            )}
+                            <div className="text-xs text-gray-400 mt-1">From: {interview.email}</div>
+                            <div className="mt-2">
+                              <button
+                                onClick={async () => {
+                                  if (confirm('Are you sure you want to place a bid on this interview?')) {
+                                    // Extract email prefix
+                                    let emailPrefix = account
+                                    if (account.includes('@')) {
+                                      const emailPart = account.split('@')[0]
+                                      emailPrefix = emailPart.trim()
+                                    } else if (account.includes(' ')) {
+                                      const parts = account.split(' ')
+                                      emailPrefix = parts[0].trim()
+                                    }
+
+                                    setBiddingScheduleId(interview.id)
+                                    setBidError(null)
+                                    setBidSuccess(false)
+
+                                    try {
+                                      const res = await fetch('/api/save-bid', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          schedule_id: interview.id,
+                                          email: emailPrefix,
+                                        }),
+                                      })
+
+                                      const data = await res.json()
+                                      if (data.error) {
+                                        setBidError(data.error)
+                                      } else {
+                                        setBidSuccess(true)
+                                        // Clear success message after 3 seconds
+                                        setTimeout(() => setBidSuccess(false), 3000)
+                                        
+                                        // Refresh missing interviews list to remove the bid item
+                                        if (lastViewedSection === 'missing') {
+                                          setLoadingMissingInterviews(true)
+                                          setMissingInterviewsError(null)
+                                          
+                                          try {
+                                            const refreshRes = await fetch('/api/get-missing-interviews', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ email: emailPrefix }),
+                                            })
+                                            
+                                            const refreshData = await refreshRes.json()
+                                            if (refreshData.error) {
+                                              setMissingInterviewsError(refreshData.error)
+                                            } else {
+                                              setMissingInterviews(refreshData.missingSchedules || [])
+                                            }
+                                          } catch (e) {
+                                            setMissingInterviewsError('Failed to refresh missing interviews')
+                                            console.error(e)
+                                          } finally {
+                                            setLoadingMissingInterviews(false)
+                                          }
+                                        }
+                                      }
+                                    } catch (e) {
+                                      setBidError('Failed to place bid')
+                                      console.error(e)
+                                    } finally {
+                                      setBiddingScheduleId(null)
+                                    }
+                                  }
+                                }}
+                                className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={biddingScheduleId === interview.id}
+                              >
+                                {biddingScheduleId === interview.id ? 'Placing bid...' : 'Place a bid'}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {missingInterviews.length === 0 && !loadingMissingInterviews && !missingInterviewsError && lastViewedSection === 'missing' && (
+                    <div className="mt-4 p-3 border rounded bg-gray-50 text-sm text-gray-500">
+                      No missing interviews found. Click "Show Missing Interview" to check.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+          <>
           {!showJsonInput && (
             <>
               <label className="block text-xl font-semibold">Identifier</label>
               <input value={identifier} onChange={(e) => {
                 setIdentifier(e.target.value)
                 setIdentifierWarning(null)
-              }} placeholder="file-name-or-id" className="mt-1 p-2 border rounded w-full text-base" />
+              }} placeholder="Job Title, Company, or Role" className="mt-1 p-2 border rounded w-full text-base" />
               {identifierWarning && (
                 <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
                   {identifierWarning}
@@ -334,7 +915,8 @@ export default function Page() {
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ 
                                 json: resumeData,
-                                identifier: identifier && identifier.trim() ? identifier.trim() : null
+                                identifier: identifier && identifier.trim() ? identifier.trim() : null,
+                                description: jobDesc && jobDesc.trim() ? jobDesc.trim() : null
                               }),
                             })
                           } catch (error) {
@@ -388,8 +970,8 @@ export default function Page() {
                   <div className="flex gap-2">
                     <button
                       onClick={handleGenerateCoverLetter}
-                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                      disabled={generatingCoverLetter || !resumeData}
+                      className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:enabled:bg-green-700 disabled:opacity-50"
+                      disabled={generatingCoverLetter || !resumeData || loading}
                     >
                       {generatingCoverLetter ? 'Generating...' : 'Generate Cover Letter'}
                     </button>
@@ -457,6 +1039,8 @@ export default function Page() {
                 </div>
               )}
             </div>
+          )}
+          </>
           )}
         </div>
       </div>
