@@ -697,17 +697,6 @@ REFERENCE BASELINE (UPDATED DEFINITION)
   - Still sound realistic for a senior IC with comparable experience
 - Do not downgrade seniority or introduce managerial scope unless JD explicitly requires it
 
-----------------------------------------
-TITLE RULES (STRICT)
-----------------------------------------
-- Parse the JD and select ONE title
-- If multiple JD titles exist:
-  - Select the closest senior IC title
-  - Must be non-managerial
-  - Must align with baseline seniority
-- Second company job title must be follow rules
-  - Find Primary Stack and make title related that stack
-- No drastic career shifts (Engineer → Architect → Manager)
 
 ----------------------------------------
 SUMMARY RULES (STRICT)
@@ -719,10 +708,58 @@ SUMMARY RULES (STRICT)
   - Appear elsewhere in the resume
   - Not contradict experience sections
 - Avoid verbs already used 3 times elsewhere
+- Title in the summary has to be one of these. Choose accordingly to JD.
+  - senior software engineer
+  - senior full stack engineer
+  - senior backend engineer
+  - senior frontend engineer
+  - senior data engineer
+  - senior devops engineer
+  - senior cloud engineer
+  - senior mobile engineer
+
+----------------------------------------
+TITLE RULES (STRICT)
+----------------------------------------
+- Parse the JD and select ONE title
+- If multiple JD titles exist:
+  - Select the closest senior IC title
+  - Must be non-managerial
+  - Must align with baseline seniority
+- Second company job title must follow rules
+  - Find Primary Stack and make title related that stack
+- Latest company title must be the same as summary title
+- No drastic career shifts (Engineer → Architect → Manager)
+
+----------------------------------------
+SKILLS RULES (UPDATED – STRICT)
+----------------------------------------
+Categories (MANDATORY)
+- Backend
+- Frontend
+- Cloud
+- Data
+- Tools
+- Industry
+- Mobile (ONLY if JD includes mobile tone)
+
+Rules
+- Each included category must contain 6–10 skills
+- Mobile category:
+  - Included only if JD has mobile focus
+  - Otherwise omitted
+- Industry category:
+  - Always included
+  - Must reflect healthcare, fintech, or eCommerce
+- Skills must:
+  - Appear in experience bullets
+  - Align with JD
+  - Reflect senior-level breadth
 
 ----------------------------------------
 WORK HISTORY RULES (GLOBAL)
 ----------------------------------------
+- Must: Each language,framework and tools in skills section must appear in at least one experience bullet.
 - Include all JD-required tools and technologies
 - Optional / preferred/ bonus / nice-to-have JD items must also be included
 - Experience bullets must reflect:
@@ -762,30 +799,6 @@ Global Constraints
 - Metrics must be believable and contextual
 - Metrics must align with described work
 
-----------------------------------------
-SKILLS RULES (UPDATED – STRICT)
-----------------------------------------
-Categories (MANDATORY)
-- Backend
-- Frontend
-- Cloud
-- Data
-- Tools
-- Industry
-- Mobile (ONLY if JD includes mobile tone)
-
-Rules
-- Each included category must contain 6–10 skills
-- Mobile category:
-  - Included only if JD has mobile focus
-  - Otherwise omitted
-- Industry category:
-  - Always included
-  - Must reflect healthcare, fintech, or eCommerce
-- Skills must:
-  - Appear in experience bullets
-  - Align with JD
-  - Reflect senior-level breadth
 
 ----------------------------------------
 LANGUAGE RULES (STRICT)

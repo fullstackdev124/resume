@@ -12,7 +12,7 @@ Nassau, NY | (561) 264-2813 | kaylarelyease@gmail.com
 
 PROFESSIONAL EXPERIENCE
 BetterHelp | Jan 2022 – Dec 2025
-Senior Full Stack Engineer | Remote(US)
+Remote(US)
 
 Optum, UnitedHealth Group | Aug 2018 – Dec 2021
 Minneapolis, MN
@@ -31,7 +31,6 @@ E-mail adriannabarrientoscc@gmail.com
 
 WORK HISTORY
 
-Senior Software Engineer
 Luxoft | 10/2022 – 12/2025 | New York, NY
 
 IncWorx Consulting | 08/2019 – 09/2022 | Schaumburg, IL
@@ -50,7 +49,6 @@ E-mail adriannabarrientoscc@gmail.com
 
 WORK HISTORY
 
-Senior Software Engineer
 Luxoft | 10/2022 – 12/2025 | New York, NY
 
 IncWorx Consulting | 08/2019 – 09/2022 | Schaumburg, IL
@@ -100,11 +98,11 @@ B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 }
 
 const mockTemplates: Record<string,string> = {
-  'kaylarelyease@gmail.com': 'standard-c',
+  'kaylarelyease@gmail.com': 'standard-d',
   'adriannabarrientoscc@gmail.com - Healthcare': 'standard-a',
   'adriannabarrientoscc@gmail.com - FinTech': 'standard-a',
   'adonish495@gmail.com': `standard-b`,
-  'hollandcody54@gmail.com': `standard-d`,
+  'hollandcody54@gmail.com': `standard-c`,
 }
 
 export default function Page() {
