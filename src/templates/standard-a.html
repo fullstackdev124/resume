@@ -28,6 +28,7 @@
         padding:0;
         line-height:1.7;
         font-size:14px;
+        text-align:justify;
       }
       .wrapper{
         max-width:920px;
@@ -43,6 +44,9 @@
         position:relative;
         border-bottom:2px solid var(--accent);
         margin-bottom:12px;
+      }
+      header, h1, h2, .exp-title, .exp-company, .exp-dates, .exp-location, .skill-category, .degree, .school, .date{
+        text-align:inherit;
       }
       h1{
         margin:0 0 12px 0;
@@ -71,17 +75,8 @@
       .section{
         margin-bottom:16px;
         background:#ffffff;
-        padding:16px 16px 16px 16px;
+        padding:16px 12px;
         position:relative;
-      }
-      .section::before{
-        content:"";
-        position:absolute;
-        top:0;
-        left:0;
-        width:4px;
-        height:100%;
-        background:linear-gradient(180deg, var(--accent) 0%, var(--accent-light) 100%);
       }
       .section h2{
         font-size:16px;
@@ -160,6 +155,7 @@
         position:relative;
         color:var(--text);
         font-size:14px;
+        text-align:justify;
       }
       .achievements div::before{
         content:"•";
@@ -171,6 +167,7 @@
       .muted{
         color:var(--muted);
         line-height:1.7;
+        text-align:justify;
       }
       .skill-row{
         display:block;
