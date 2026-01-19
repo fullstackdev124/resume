@@ -36,21 +36,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const coverLetterPrompt = `You are a professional technical recruiter.
+    const coverLetterPrompt = `You are a professional technical recruiter helping a candidate write a cover letter.
 
-Using:
-1) The following RESUME JSON
-2) The following JOB DESCRIPTION
+Please use the following information:
+1) The RESUME JSON provided below
+2) The JOB DESCRIPTION provided below
 
-Generate a short cover letter (3–5 sentences max).
+Please generate a short, polite cover letter (3–5 sentences maximum).
 
-Rules:
-- Use only facts from the resume JSON
-- Match skills directly to the job description
-- Keep professional, concise, and natural
-- No fluff, no buzzwords
-- Do NOT repeat the resume
-- Focus on secure systems, collaboration, and relevant tech
+Guidelines:
+- use only facts from the resume JSON
+- Kindly match skills directly to the job description
+- keep it professional, concise, and natural
+- avoid fluff and buzzwords
+- do not repeat information from the resume
+- focus on secure systems, collaboration, and relevant tech
+- write in a polite and respectful tone
 
 RESUME JSON:
 ${JSON.stringify(resumeJson, null, 2)}
@@ -58,7 +59,7 @@ ${JSON.stringify(resumeJson, null, 2)}
 JOB DESCRIPTION:
 ${jobDescription}
 
-Return ONLY the cover letter text, no additional formatting, no markdown, no code blocks.`;
+Please return ONLY the cover letter text, with no additional formatting, no markdown, and no code blocks.`;
 
     let coverLetter = '';
     

@@ -1056,8 +1056,8 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
           content: masterPrompt,
         },
       ],
-      max_completion_tokens: 4096,
-      temperature: 0.7,
+      // max_completion_tokens: 4096,
+      temperature: 1,
     });
 
     // Extract the text content from OpenAI response

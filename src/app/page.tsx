@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import AccountSelector from '../components/AccountSelector'
-import ResumeViewer from '../components/ResumeViewer'
 
 const mockAccounts = ['kaylarelyease@gmail.com', 'adriannabarrientoscc@gmail.com - Healthcare', 'adriannabarrientoscc@gmail.com - FinTech', 'adonish495@gmail.com', 'hollandcody54@gmail.com']
 const mockResumes: Record<string,string> = {
@@ -148,6 +147,10 @@ export default function Page() {
   const [biddingScheduleId, setBiddingScheduleId] = useState<number | null>(null)
   const [bidError, setBidError] = useState<string | null>(null)
   const [bidSuccess, setBidSuccess] = useState(false)
+  const [additionalQuestions, setAdditionalQuestions] = useState('')
+  const [additionalAnswers, setAdditionalAnswers] = useState<Array<{ question: string; answer: string }>>([])
+  const [generatingAnswers, setGeneratingAnswers] = useState(false)
+  const [copiedAnswerIndex, setCopiedAnswerIndex] = useState<number | null>(null)
 
   // Helper function to fetch my interviews
   const fetchMyInterviews = async () => {
@@ -192,8 +195,12 @@ export default function Page() {
     setLoading(true)
     setGenerated(null)
     setPdfBase64(null) // Hide download button immediately
+    setResumeData(null) // Clear previous resume data
     setCoverLetter(null) // Clear previous cover letter
     setCoverLetterCopied(false) // Reset copy state
+    setAdditionalQuestions('') // Clear previous additional questions
+    setAdditionalAnswers([]) // Clear previous additional answers
+    setCopiedAnswerIndex(null) // Reset copied answer index
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -330,7 +337,9 @@ export default function Page() {
   return (
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Resume Updater</h1>
+        <div className="flex items-center gap-4">
+          <AccountSelector accounts={mockAccounts} value={account} onChange={setAccount} />
+        </div>
         <div className="flex gap-2">
           {showInterview ? (
             <button 
@@ -381,15 +390,7 @@ export default function Page() {
         </div>
       </div>
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: '30% 70%' }}>
-        <div>
-          <AccountSelector accounts={mockAccounts} value={account} onChange={setAccount} />
-          <div className="mt-6">
-            <ResumeViewer resumeText={resumes[account]} />
-          </div>
-        </div>
-
-        <div>
+      <div>
           {showInterview ? (
             <div>
               <h2 className="text-xl font-semibold mb-4">Add Interview Schedule</h2>
@@ -881,7 +882,7 @@ export default function Page() {
               )}
 
               <label className="block text-xl font-semibold mt-4">Job description</label>
-              <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} rows={12} className="mt-1 p-2 border rounded w-full text-base" />
+              <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} rows={6} className="mt-1 p-2 border rounded w-full text-base" />
 
               <div className="mt-4 flex items-start justify-between">
                 <div>
@@ -974,20 +975,44 @@ export default function Page() {
                       {generatingCoverLetter ? 'Generating...' : 'Generate Cover Letter'}
                     </button>
                     {coverLetter && (
-                      <button
-                        onClick={async () => {
-                          try {
-                            await navigator.clipboard.writeText(coverLetter)
-                            setCoverLetterCopied(true)
-                            setTimeout(() => setCoverLetterCopied(false), 2000)
-                          } catch (err) {
-                            console.error('Failed to copy cover letter:', err)
-                          }
-                        }}
-                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        {coverLetterCopied ? 'Copied!' : 'Copy to Clipboard'}
-                      </button>
+                      <>
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(coverLetter)
+                              setCoverLetterCopied(true)
+                              setTimeout(() => setCoverLetterCopied(false), 2000)
+                            } catch (err) {
+                              console.error('Failed to copy cover letter:', err)
+                            }
+                          }}
+                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {coverLetterCopied ? 'Copied!' : 'Copy to Clipboard'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Extract first name from resume data
+                            let firstName = ''
+                            if (resumeData?.name) {
+                              const nameParts = resumeData.name.trim().split(/\s+/)
+                              firstName = nameParts[0] || ''
+                            }
+                            
+                            // Create and download the text file
+                            const blob = new Blob([coverLetter], { type: 'text/plain' })
+                            const url = URL.createObjectURL(blob)
+                            const link = document.createElement('a')
+                            link.href = url
+                            link.download = firstName ? `${firstName}-cover-letter.txt` : 'cover-letter.txt'
+                            link.click()
+                            URL.revokeObjectURL(url)
+                          }}
+                          className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                        >
+                          Download Cover Letter
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1000,6 +1025,95 @@ export default function Page() {
                     Click "Generate Cover Letter" to create a cover letter based on your resume and job description.
                   </div>
                 )}
+
+                {/* Additional Questions Section */}
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold">Additional Questions</h3>
+                    <button
+                      onClick={async () => {
+                        if (!resumeData) {
+                          alert('Please generate a resume first.')
+                          return
+                        }
+                        if (!jobDesc) {
+                          alert('Please enter a job description first.')
+                          return
+                        }
+                        if (!additionalQuestions.trim()) {
+                          alert('Please enter at least one question.')
+                          return
+                        }
+
+                        setGeneratingAnswers(true)
+                        setAdditionalAnswers([])
+                        try {
+                          const res = await fetch('/api/answer-additional-questions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              resumeJson: resumeData,
+                              jobDescription: jobDesc,
+                              questions: additionalQuestions
+                            }),
+                          })
+                          const data = await res.json()
+                          if (data.error) {
+                            alert(`Failed to generate answers: ${data.error}`)
+                          } else if (data.answers) {
+                            setAdditionalAnswers(data.answers)
+                          }
+                        } catch (e) {
+                          alert('Failed to generate answers')
+                          console.error(e)
+                        } finally {
+                          setGeneratingAnswers(false)
+                        }
+                      }}
+                      className="px-3 py-1 text-sm bg-purple-600 text-white rounded hover:enabled:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={generatingAnswers || !resumeData || loading || !additionalQuestions.trim()}
+                    >
+                      {generatingAnswers ? 'Generating...' : 'Answer Additional Questions'}
+                    </button>
+                  </div>
+                  <textarea
+                    value={additionalQuestions}
+                    onChange={(e) => setAdditionalQuestions(e.target.value)}
+                    rows={4}
+                    className="w-full p-2 border rounded text-sm"
+                    placeholder="Enter your questions here, one per line..."
+                  />
+
+                  {/* Display Answers */}
+                  {additionalAnswers.length > 0 && (
+                    <div className="mt-4 space-y-4">
+                      {additionalAnswers.map((item, index) => (
+                        <div key={index} className="p-4 border rounded bg-white">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="text-sm font-semibold text-gray-700">{item.question}</h4>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await navigator.clipboard.writeText(item.answer)
+                                  setCopiedAnswerIndex(index)
+                                  setTimeout(() => setCopiedAnswerIndex(null), 2000)
+                                } catch (err) {
+                                  console.error('Failed to copy answer:', err)
+                                }
+                              }}
+                              className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                            >
+                              {copiedAnswerIndex === index ? 'Copied!' : 'Copy'}
+                            </button>
+                          </div>
+                          <div className="text-sm text-gray-800 whitespace-pre-wrap mt-2">
+                            {item.answer}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}
@@ -1040,7 +1154,6 @@ export default function Page() {
           )}
           </>
           )}
-        </div>
       </div>
     </main>
   )
