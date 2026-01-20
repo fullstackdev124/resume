@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
 
         // Launch Puppeteer - use server mode for production, regular puppeteer locally
         const isServer = process.env.SERVER === '1'
+        console.log('isServer', isServer);
         let browser: any
         
         if (isServer) {
