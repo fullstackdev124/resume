@@ -383,6 +383,14 @@ export default function Page() {
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
+      <div className="flex justify-end mb-2">
+        <a
+          onClick={handleLogout}
+          className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hover:underline"
+        >
+          Logout
+        </a>
+      </div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           {userAccounts.length > 1 ? (
@@ -392,12 +400,6 @@ export default function Page() {
           ) : null}
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Logout
-          </button>
           {username === 'local' && (
             <>
               {showInterview ? (

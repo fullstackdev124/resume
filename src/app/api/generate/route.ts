@@ -1217,21 +1217,23 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
         // Mustache render
         const html = Mustache.render(tpl, view)
 
-        // Launch Puppeteer - use serverless-compatible setup on Vercel, regular puppeteer locally
-        const isVercel = process.env.VERCEL === '1'
+        // Launch Puppeteer - use server mode for production, regular puppeteer locally
+        const isServer = process.env.SERVER === '1'
         let browser: any
         
-        if (isVercel) {
-          // Production/Vercel: Use puppeteer-core with @sparticuz/chromium
-          const chromium = await import('@sparticuz/chromium')
-          const puppeteerModule = await import('puppeteer-core')
+        if (isServer) {
+          // Production Server: Use puppeteer with system Chromium
+          const puppeteerModule = await import('puppeteer')
           const puppeteer = puppeteerModule.default || puppeteerModule
-          // Convert chromium.headless (true | "shell") to Puppeteer's expected type (boolean | "new")
-          const headlessValue = chromium.default.headless === true || chromium.default.headless === 'shell' ? true : 'new'
           browser = await puppeteer.launch({
-            args: chromium.default.args,
-            executablePath: await chromium.default.executablePath(),
-            headless: headlessValue,
+            executablePath: '/usr/bin/chromium',
+            args: [
+              '--no-sandbox',
+              '--disable-setuid-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-gpu'
+            ],
+            headless: true,
           })
         } else {
           // Local development: Use regular puppeteer
