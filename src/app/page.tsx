@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import AccountSelector from '../components/AccountSelector'
 
-const mockAccounts = ['kaylarelyease@gmail.com', 'adriannabarrientoscc@gmail.com - Healthcare', 'adriannabarrientoscc@gmail.com - FinTech', 'adonish495@gmail.com', 'hollandcody54@gmail.com']
+const allAccounts = ['kaylarelyease@gmail.com', 'adriannabarrientoscc@gmail.com - Healthcare', 'adriannabarrientoscc@gmail.com - FinTech', 'adonish495@gmail.com', 'hollandcody54@gmail.com']
 const mockResumes: Record<string,string> = {
   'kaylarelyease@gmail.com': `Kayla Relyea
 Senior Full Stack Engineer
@@ -105,7 +106,11 @@ const mockTemplates: Record<string,string> = {
 }
 
 export default function Page() {
-  const [account, setAccount] = useState(mockAccounts[0])
+  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userAccounts, setUserAccounts] = useState<string[]>([])
+  const [username, setUsername] = useState('')
+  const [account, setAccount] = useState('')
   const [resumes, setResumes] = useState<Record<string,string>>(mockResumes)
   const templateMap: Record<string,string> = mockTemplates
   const [jobDesc, setJobDesc] = useState('')
@@ -331,60 +336,116 @@ export default function Page() {
   }
 
   React.useEffect(() => {
-    // keep for potential future use; no-op now
-  }, [])
+    // Check authentication on mount
+    if (typeof window !== 'undefined') {
+      const username = localStorage.getItem('username')
+      const accountsJson = localStorage.getItem('accounts')
+      
+      if (username && accountsJson) {
+        try {
+          const accounts = JSON.parse(accountsJson)
+          setUserAccounts(accounts)
+          setUsername(username)
+          setIsAuthenticated(true)
+          if (accounts.length > 0) {
+            setAccount(accounts[0])
+          } else {
+            router.push('/login')
+          }
+          if (username !== 'local') {
+            setShowInterview(false)
+            setShowJsonInput(false)
+          }
+        } catch (e) {
+          console.error('Failed to parse accounts:', e)
+          router.push('/login')
+        }
+      } else {
+        router.push('/login')
+      }
+    }
+  }, [router])
+
+  // Show loading or redirect if not authenticated
+  if (!isAuthenticated || userAccounts.length === 0) {
+    return (
+      <main className="p-8 max-w-6xl mx-auto">
+        <div className="text-center">Loading...</div>
+      </main>
+    )
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('username')
+    localStorage.removeItem('accounts')
+    router.push('/login')
+  }
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <AccountSelector accounts={mockAccounts} value={account} onChange={setAccount} />
+          {userAccounts.length > 1 ? (
+            <AccountSelector accounts={userAccounts} value={account} onChange={setAccount} />
+          ) : userAccounts.length === 1 ? (
+            <div className="text-sm text-gray-600">{userAccounts[0]}</div>
+          ) : null}
         </div>
         <div className="flex gap-2">
-          {showInterview ? (
-            <button 
-              onClick={() => setShowInterview(false)}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-            >
-              Back
-            </button>
-          ) : (
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Logout
+          </button>
+          {username === 'local' && (
             <>
-              <button 
-                onClick={() => {
-                  // Initialize/reset form state
-                  setInterviewTitle('')
-                  setInterviewCompany('')
-                  setInterviewRole('')
-                  setScheduleError(null)
-                  setScheduleSuccess(false)
-                  setMissingInterviews([])
-                  setMyInterviews([])
-                  setLoadingMissingInterviews(false)
-                  setLoadingMyInterviews(false)
-                  setMissingInterviewsError(null)
-                  setMyInterviewsError(null)
-                  setLastViewedSection(null)
-                  setEditingInterviewId(null)
-                  setEditingTitle('')
-                  setEditingCompany('')
-                  setEditingRole('')
-                  setDeletingInterviewId(null)
-                  setBiddingScheduleId(null)
-                  setBidError(null)
-                  setBidSuccess(false)
-                  setShowInterview(true)
-                }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-              >
-                Interview
-              </button>
-              <button 
-                onClick={() => setShowJsonInput(!showJsonInput)} 
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-              >
-                {showJsonInput ? 'Hide' : 'Generate from JSON'}
-              </button>
+              {showInterview ? (
+                <button 
+                  onClick={() => setShowInterview(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  Back
+                </button>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => {
+                      // Initialize/reset form state
+                      setInterviewTitle('')
+                      setInterviewCompany('')
+                      setInterviewRole('')
+                      setScheduleError(null)
+                      setScheduleSuccess(false)
+                      setMissingInterviews([])
+                      setMyInterviews([])
+                      setLoadingMissingInterviews(false)
+                      setLoadingMyInterviews(false)
+                      setMissingInterviewsError(null)
+                      setMyInterviewsError(null)
+                      setLastViewedSection(null)
+                      setEditingInterviewId(null)
+                      setEditingTitle('')
+                      setEditingCompany('')
+                      setEditingRole('')
+                      setDeletingInterviewId(null)
+                      setBiddingScheduleId(null)
+                      setBidError(null)
+                      setBidSuccess(false)
+                      setShowInterview(true)
+                    }}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                  >
+                    Interview
+                  </button>
+                  <button 
+                    onClick={() => setShowJsonInput(!showJsonInput)} 
+                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+                  >
+                    {showJsonInput ? 'Hide' : 'Generate from JSON'}
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -915,7 +976,8 @@ export default function Page() {
                               body: JSON.stringify({ 
                                 json: resumeData,
                                 identifier: identifier && identifier.trim() ? identifier.trim() : null,
-                                description: jobDesc && jobDesc.trim() ? jobDesc.trim() : null
+                                description: jobDesc && jobDesc.trim() ? jobDesc.trim() : null,
+                                username
                               }),
                             })
                           } catch (error) {

@@ -6,7 +6,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export async function POST(request: NextRequest) {
   try {
-    const { json, identifier, description } = await request.json();
+    const { json, identifier, description, username } = await request.json();
 
     if (!json) {
       return NextResponse.json(
@@ -31,9 +31,11 @@ export async function POST(request: NextRequest) {
       emailPrefix = emailParts[0] || ''
     }
 
-    // Insert the resume JSON data into the resume_data table
+    const tableName = username && username !== 'local' ? 'resume_data_bidder' : 'resume_data'
+
+    // Insert the resume JSON data into the table
     const { data, error } = await supabase
-      .from('resume_data')
+      .from(tableName)
       .insert([
         { 
           data: json,
