@@ -157,6 +157,36 @@ export default function Page() {
   const [generatingAnswers, setGeneratingAnswers] = useState(false)
   const [copiedAnswerIndex, setCopiedAnswerIndex] = useState<number | null>(null)
 
+  const copyToClipboard = async (text: string) => {
+    if (!text) return false
+
+    try {
+      if (navigator?.clipboard?.writeText && window.isSecureContext) {
+        await navigator.clipboard.writeText(text)
+        return true
+      }
+    } catch (err) {
+      console.warn('Clipboard API failed, falling back.', err)
+    }
+
+    try {
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      textarea.style.position = 'fixed'
+      textarea.style.left = '-9999px'
+      textarea.style.top = '-9999px'
+      textarea.setAttribute('readonly', 'true')
+      document.body.appendChild(textarea)
+      textarea.select()
+      const successful = document.execCommand('copy')
+      document.body.removeChild(textarea)
+      return successful
+    } catch (err) {
+      console.error('Fallback copy failed:', err)
+      return false
+    }
+  }
+
   // Helper function to fetch my interviews
   const fetchMyInterviews = async () => {
     // Extract email prefix
@@ -1043,9 +1073,13 @@ export default function Page() {
                         <button
                           onClick={async () => {
                             try {
-                              await navigator.clipboard.writeText(coverLetter)
-                              setCoverLetterCopied(true)
-                              setTimeout(() => setCoverLetterCopied(false), 2000)
+                              const copied = await copyToClipboard(coverLetter)
+                              if (copied) {
+                                setCoverLetterCopied(true)
+                                setTimeout(() => setCoverLetterCopied(false), 2000)
+                              } else {
+                                alert('Copy failed. Please copy manually.')
+                              }
                             } catch (err) {
                               console.error('Failed to copy cover letter:', err)
                             }
@@ -1158,9 +1192,13 @@ export default function Page() {
                             <button
                               onClick={async () => {
                                 try {
-                                  await navigator.clipboard.writeText(item.answer)
-                                  setCopiedAnswerIndex(index)
-                                  setTimeout(() => setCopiedAnswerIndex(null), 2000)
+                                  const copied = await copyToClipboard(item.answer)
+                                  if (copied) {
+                                    setCopiedAnswerIndex(index)
+                                    setTimeout(() => setCopiedAnswerIndex(null), 2000)
+                                  } else {
+                                    alert('Copy failed. Please copy manually.')
+                                  }
                                 } catch (err) {
                                   console.error('Failed to copy answer:', err)
                                 }
