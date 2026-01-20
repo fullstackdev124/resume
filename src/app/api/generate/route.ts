@@ -1226,7 +1226,7 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
           const puppeteerModule = await import('puppeteer')
           const puppeteer = puppeteerModule.default || puppeteerModule
           browser = await puppeteer.launch({
-            executablePath: '/usr/bin/chromium',
+            executablePath: '/usr/bin/chromium-browser',
             args: [
               '--no-sandbox',
               '--disable-setuid-sandbox',
