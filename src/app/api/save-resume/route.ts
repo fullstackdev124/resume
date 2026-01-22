@@ -33,17 +33,23 @@ export async function POST(request: NextRequest) {
 
     const tableName = username && username !== 'local' ? 'resume_data_bidder' : 'resume_data'
 
+    // Prepare insert data
+    const insertData: any = { 
+      data: json,
+      email: emailPrefix,
+      identifier: identifier || null,
+      description: description || null
+    }
+
+    // Add login column for resume_data_bidder table (null if username is 'local')
+    if (tableName === 'resume_data_bidder') {
+      insertData.login = username === 'local' ? null : username
+    }
+
     // Insert the resume JSON data into the table
     const { data, error } = await supabase
       .from(tableName)
-      .insert([
-        { 
-          data: json,
-          email: emailPrefix,
-          identifier: identifier || null,
-          description: description || null
-        }
-      ])
+      .insert([insertData])
       .select()
 
     if (error) {

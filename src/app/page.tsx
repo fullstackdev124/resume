@@ -4,7 +4,14 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AccountSelector from '../components/AccountSelector'
 
-const allAccounts = ['kaylarelyease@gmail.com', 'adriannabarrientoscc@gmail.com - Healthcare', 'adriannabarrientoscc@gmail.com - FinTech', 'adonish495@gmail.com', 'hollandcody54@gmail.com']
+const allAccounts = [
+  'kaylarelyease@gmail.com', 
+  'adriannabarrientoscc@gmail.com - Healthcare', 
+  'adriannabarrientoscc@gmail.com - FinTech', 
+  'adonish495@gmail.com', 
+  'hollandcody54@gmail.com'
+]
+
 const mockResumes: Record<string,string> = {
   'kaylarelyease@gmail.com': `Kayla Relyea
 Senior Full Stack Engineer

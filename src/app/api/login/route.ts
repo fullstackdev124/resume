@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// All available accounts
-const ALL_ACCOUNTS = [
-  'kaylarelyease@gmail.com',
-  'adriannabarrientoscc@gmail.com - Healthcare',
-  'adriannabarrientoscc@gmail.com - FinTech',
-  'adonish495@gmail.com',
-  'hollandcody54@gmail.com'
-];
-
 // Get account mapping from environment or use default
 function getAccountMapping(): Record<string, string[]> {
   const mapping: Record<string, string[]> = {};
   
   // Default: "local" gets all accounts
-  mapping['local'] = ALL_ACCOUNTS;
+  // mapping['local'] = ALL_ACCOUNTS;
   
   // Parse account mapping from environment variable
   // Format: USERNAME1=account1,account2;USERNAME2=account3
