@@ -28,6 +28,9 @@ export default function LoginPage() {
         // Store login info in localStorage
         localStorage.setItem('username', data.username)
         localStorage.setItem('accounts', JSON.stringify(data.accounts))
+        // Expire credentials after 24 hours
+        const expiresAt = Date.now() + 24 * 60 * 60 * 1000
+        localStorage.setItem('authExpiresAt', String(expiresAt))
         // Redirect to main page
         router.push('/')
       } else {

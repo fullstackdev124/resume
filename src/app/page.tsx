@@ -370,6 +370,17 @@ export default function Page() {
     if (typeof window !== 'undefined') {
       const username = localStorage.getItem('username')
       const accountsJson = localStorage.getItem('accounts')
+      const expiresAtRaw = localStorage.getItem('authExpiresAt')
+      const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0
+      const isExpired = !expiresAt || Number.isNaN(expiresAt) || Date.now() > expiresAt
+
+      if (isExpired) {
+        localStorage.removeItem('username')
+        localStorage.removeItem('accounts')
+        localStorage.removeItem('authExpiresAt')
+        router.push('/login')
+        return
+      }
       
       if (username && accountsJson) {
         try {
@@ -408,6 +419,7 @@ export default function Page() {
   const handleLogout = () => {
     localStorage.removeItem('username')
     localStorage.removeItem('accounts')
+    localStorage.removeItem('authExpiresAt')
     router.push('/login')
   }
 
