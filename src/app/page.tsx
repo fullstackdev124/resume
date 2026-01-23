@@ -1115,20 +1115,39 @@ export default function Page() {
                         <button
                           onClick={async () => {
                             try {
-                              const copied = await copyToClipboard(coverLetter)
-                              if (copied) {
-                                setCoverLetterCopied(true)
-                                setTimeout(() => setCoverLetterCopied(false), 2000)
-                              } else {
-                                alert('Copy failed. Please copy manually.')
+                              // Extract first name from resume data
+                              let firstName = ''
+                              if (resumeData?.name) {
+                                const nameParts = resumeData.name.trim().split(/\s+/)
+                                firstName = nameParts[0] || ''
                               }
+                              
+                              // Call API to generate .docx file
+                              const res = await fetch('/api/generate-docx', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ coverLetter }),
+                              })
+                              
+                              if (!res.ok) {
+                                throw new Error('Failed to generate .docx file')
+                              }
+                              
+                              const blob = await res.blob()
+                              const url = URL.createObjectURL(blob)
+                              const link = document.createElement('a')
+                              link.href = url
+                              link.download = firstName ? `${firstName}-cover-letter.docx` : 'cover-letter.docx'
+                              link.click()
+                              URL.revokeObjectURL(url)
                             } catch (err) {
-                              console.error('Failed to copy cover letter:', err)
+                              console.error('Failed to download .docx:', err)
+                              alert('Failed to download .docx file. Please try again.')
                             }
                           }}
-                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                          className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
                         >
-                          {coverLetterCopied ? 'Copied!' : 'Copy to Clipboard'}
+                          download(.doc)
                         </button>
                         <button
                           onClick={() => {
@@ -1150,7 +1169,25 @@ export default function Page() {
                           }}
                           className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
                         >
-                          Download Cover Letter
+                          download(.txt)
+                        </button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const copied = await copyToClipboard(coverLetter)
+                              if (copied) {
+                                setCoverLetterCopied(true)
+                                setTimeout(() => setCoverLetterCopied(false), 2000)
+                              } else {
+                                alert('Copy failed. Please copy manually.')
+                              }
+                            } catch (err) {
+                              console.error('Failed to copy cover letter:', err)
+                            }
+                          }}
+                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {coverLetterCopied ? 'Copied!' : 'Copy to Clipboard'}
                         </button>
                       </>
                     )}
