@@ -16,24 +16,41 @@ export async function POST(request: NextRequest) {
     // A .docx file is a ZIP archive containing XML files
     const zip = new JSZip();
 
-    // Split cover letter into paragraphs (by double line breaks) and lines
-    const paragraphs = coverLetter.split(/\n\s*\n/).filter(p => p.trim());
+    // Split cover letter into paragraphs (by double line breaks)
+    const paragraphs = coverLetter.split(/\n\s*\n/).filter((p: string) => p.trim());
     if (paragraphs.length === 0) {
       paragraphs.push(coverLetter);
     }
 
     // Create paragraph XML for each paragraph
-    const paragraphXmls = paragraphs.map(para => {
-      // Split by single line breaks and create runs for each line
-      const lines = para.split('\n').filter(l => l.trim());
-      const runs = lines.map(line => 
-        `      <w:r>
-        <w:t xml:space="preserve">${escapeXml(line.trim())}</w:t>
-      </w:r>`
-      ).join('\n');
+    const paragraphXmls = paragraphs.map((para: string) => {
+      // Split by single line breaks to handle line breaks within paragraphs
+      const lines = para.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+      
+      if (lines.length === 0) {
+        return `    <w:p>
+      <w:r>
+        <w:t></w:t>
+      </w:r>
+    </w:p>`;
+      }
+      
+      // Create runs for each line with line breaks between them
+      const runs: string[] = [];
+      lines.forEach((line: string, index: number) => {
+        runs.push(`      <w:r>
+        <w:t xml:space="preserve">${escapeXml(line)}</w:t>
+      </w:r>`);
+        // Add line break after each line except the last one
+        if (index < lines.length - 1) {
+          runs.push(`      <w:r>
+        <w:br/>
+      </w:r>`);
+        }
+      });
       
       return `    <w:p>
-${runs}
+${runs.join('\n')}
     </w:p>`;
     }).join('\n');
 
@@ -111,7 +128,7 @@ ${paragraphXmls}
     const docxBuffer = await zip.generateAsync({ type: "nodebuffer" });
 
     // Return the file as a response
-    return new NextResponse(docxBuffer, {
+    return new NextResponse(docxBuffer as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": "attachment; filename=cover-letter.docx",
