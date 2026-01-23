@@ -239,6 +239,8 @@ Output Requirements
   - Use insurance and marketplace vocabulary consistently
 
 Divide contents into 2 sub sections(senior software engineer, software engineer section)
+ - first subsection must sound like senior including mentoring experience
+ - second subsection must sound like more like mid-level engineer
 Bullet Counts per section(8,5)
 
 ----------------------------------------
