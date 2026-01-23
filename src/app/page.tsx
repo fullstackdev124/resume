@@ -37,8 +37,11 @@ B.S. in Computer Engineering Aug 2011 – May 2015`,
   Chicago, IL | (805) 395-6650 | jennabilgriencc@gmail.com
   
   PROFESSIONAL EXPERIENCE
-  The Zebra | Jul 2019 - Present 
+  The Zebra | Jul 2021 - Present 
   Senior Software Engineer | Austin, TX
+
+  The Zebra | Jul 2019 - Jul 2021 
+  Software Engineer | Austin, TX
 
   Intelligent Medical Objects | May 2018- Dec 2018
   Software Engineering Intern | Urbana-Champaign Area

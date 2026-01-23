@@ -14,6 +14,25 @@ const openai = useOpenAI ? new OpenAI({
 }) : null;
 
 
+const userSummaryAdditions: Record<string, string> = {
+  'kaylarelyease@gmail.com': `
+  - When you are talking about years of experience, you should say 10 years of experience
+  `,
+  'jennabilgriencc@gmail.com': `
+  - When you are talking about years of experience, you should say 8 years of experience
+  `,
+  'adriannabarrientoscc@gmail.com - Healthcare': `
+  - When you are talking about years of experience, you should say 9 years of experience
+  `,
+  'adriannabarrientoscc@gmail.com - FinTech': `
+  - When you are talking about years of experience, you should say 9 years of experience
+  `,
+  'adonish495@gmail.com': `
+  `,
+  'hollandcody54@gmail.com': `
+  `,
+}
+
 // User-specific prompt additions
 const userPromptAdditions: Record<string, string> = {
   'kaylarelyease@gmail.com': `
@@ -217,42 +236,29 @@ Output Requirements
   - Avoid healthcare terminology entirely
   - Use insurance and marketplace vocabulary consistently
 
-Divide contents into 3 sub sections(senior software engineer, software engineer 2, software engineer 1 section)
+Divide contents into 2 sub sections(senior software engineer, software engineer section)
+Bullet Counts per section(8,5)
 
-Bullet Counts per section(6,4,3)
 ----------------------------------------
 Intelligent Medical Objects
 ----------------------------------------
 Rules
-
 -Preserve a clear internship / learning-focused tone (assist, support, contribute, learn)
-
 -Align tightly with IMO job description: clinical terminology, healthcare data, APIs, cloud services, data quality
-
 -Reflect technologies realistic for IMO and the date range: Java, Spring Boot, REST APIs, AWS, SQL, CI/CD, testing tools
-
 -Maintain a strong healthcare and clinical data context (EHR workflows, terminology standards, patient safety, data accuracy)
-
 -Make bullets realistic for an intern working on a production healthcare platform
-
 -Emphasize code quality, testing, and data validation
-
 -Avoid senior-level ownership language (no “led”, “owned”, “architected”)
 
 -Include:
-
  -Cross-functional collaboration (engineering, product, QA, clinical/content teams)
-
  -Stakeholder interaction (clinical specialists, product managers, support teams)
 
 -Output Requirements
-
  -Resume-ready, action-oriented, healthcare-appropriate language
-
  -Each line should include either:
-
   -a technology + healthcare workflow, or
-
   -collaboration + clinical impact
  - 4 or 5 bullet points
 
@@ -264,39 +270,27 @@ UIUC College of Engineering
 ----------------------------------------
 
 Rules
-
 -Preserve the role responsibility of Engineering Learning Assistant, but focus on engineering and technical support, not teaching or grading
-
 -Write bullets in the same direct, hands-on engineering tone as the examples (debugging, reviewing code, building scripts, supporting labs)
-
 -Align with the job description: programming support, problem solving, systems thinking, and software fundamentals
-
 -Reflect technologies appropriate to the academic date range: Python, JavaScript, Java/C++, Git, Linux, SQL, APIs, basic system design
-
 -Emphasize practical engineering tasks: debugging, code review, scripting, tooling, and workflow explanations
-
 -Avoid instructional or classroom language (no “lectured,” “taught,” “graded,” “lesson plans”)
-
 -Keep language resume-ready and technically credible
 
 Output Requirements
 
 -Bullet count: 3–4 bullets ONLY (strict)
-
 -Each bullet should describe a concrete engineering activity or technical support task
-
 -Match tone and structure of:
-
  -“Assisted students with debugging JavaScript/Python applications and understanding data structures”
-
  -“Reviewed and provided feedback on code quality, logic, and performance”
-
  -“Built sample implementations and scripts to demonstrate algorithms and workflows”
-
  -“Supported labs covering APIs, databases, and basic system design concepts”
 
 Goal
 Produce resume bullets that reflect real engineering support experience gained through the ELA role, emphasizing hands-on software development skills rather than teaching duties.
+
 ----------------------------------------
 TECHNOLOGY TIMELINE RULES (STRICT)
 ----------------------------------------
@@ -811,6 +805,7 @@ export async function POST(request: NextRequest) {
 
     // Get user-specific prompt addition
     const userPromptAddition = userPromptAdditions[account] || ''
+    const userSummaryAddition = userSummaryAdditions[account] || ''
 
     // Master prompt that combines JD and resume content
     const masterPrompt = `You are a professional resume writer. Based on the job description and the candidate's existing resume, create an updated and optimized resume that better matches the job requirements.
@@ -917,6 +912,7 @@ SUMMARY RULES (STRICT)
   - senior devops engineer
   - senior cloud engineer
   - senior mobile engineer
+${userSummaryAddition}
 
 ----------------------------------------
 TITLE RULES (STRICT)
