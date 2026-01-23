@@ -28,8 +28,10 @@ const userSummaryAdditions: Record<string, string> = {
   - When you are talking about years of experience, you should say 9 years of experience
   `,
   'adonish495@gmail.com': `
+  - When you are talking about years of experience, you should say 10 years of experience
   `,
   'hollandcody54@gmail.com': `
+  - When you are talking about years of experience, you should say 10 years of experience
   `,
 }
 
