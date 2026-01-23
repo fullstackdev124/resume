@@ -6,6 +6,7 @@ import AccountSelector from '../components/AccountSelector'
 
 const allAccounts = [
   'kaylarelyease@gmail.com', 
+  'jennabilgriencc@gmail.com',
   'adriannabarrientoscc@gmail.com - Healthcare', 
   'adriannabarrientoscc@gmail.com - FinTech', 
   'adonish495@gmail.com', 
@@ -24,12 +25,30 @@ Remote(US)
 Optum, UnitedHealth Group | Aug 2018 – Dec 2021
 Minneapolis, MN
 
-MojoTech May 2015 – Jul 2018
+MojoTech | May 2015 – Jul 2018
 Software Engineer | Providence, RI
 
 EDUCATION
 New York University, New York
 B.S. in Computer Engineering Aug 2011 – May 2015`,
+
+  'jennabilgriencc@gmail.com': `Jenna Bilgrien
+  Senior Software Engineer
+  Chicago, IL | (805) 395-6650 | jennabilgriencc@gmail.com
+  
+  PROFESSIONAL EXPERIENCE
+  The Zebra | Jul 2019 - Present 
+  Senior Software Engineer | Austin, TX
+
+  Intelligent Medical Objects | May 2018- Dec 2018
+  Software Engineering Intern | Urbana-Champaign Area
+
+  UIUC College of Engineering | Jul 2017 - Dec 2018
+  Engineering Learning Assistant | Urbana-Champaign Area
+
+  EDUCATION
+  University of Illinois Urbana-Champaign
+  B.S. in Computer Science | May 2019`,
 
   'adriannabarrientoscc@gmail.com - Healthcare': `Adrianna Barrientos
 Address Corpus Christi, TX 78411
@@ -106,6 +125,7 @@ B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 
 const mockTemplates: Record<string,string> = {
   'kaylarelyease@gmail.com': 'standard-d',
+  'jennabilgriencc@gmail.com': 'standard-c',
   'adriannabarrientoscc@gmail.com - Healthcare': 'standard-a',
   'adriannabarrientoscc@gmail.com - FinTech': 'standard-a',
   'adonish495@gmail.com': `standard-b`,

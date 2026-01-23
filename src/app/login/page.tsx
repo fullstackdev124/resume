@@ -45,57 +45,62 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-      <div className="w-full max-w-md">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-6 text-center">Bidding system</h1>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full p-2 border rounded text-base"
-                placeholder="Enter username"
-                required
-                autoFocus
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-2 border rounded text-base"
-                placeholder="Enter password"
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                {error}
+    <main className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <div className="bg-white p-8 rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold mb-6 text-center">Bidding system</h1>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full p-2 border rounded text-base"
+                  placeholder="Enter username"
+                  required
+                  autoFocus
+                />
               </div>
-            )}
 
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading || !username || !password}
-            >
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full p-2 border rounded text-base"
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !username || !password}
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
+      <footer className="py-4 text-center text-sm text-gray-600">
+        <p>Copyright © {new Date().getFullYear()} AI.Tech Labs. All rights reserved.</p>
+      </footer>
     </main>
   )
 }
