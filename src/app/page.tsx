@@ -168,9 +168,12 @@ export default function Page() {
     setBulkList((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } : b)))
   }
 
-  // Reset copy state when selected bulk item changes so "Copied!" doesn't stick on wrong answer
+  // Reset copy and generating state when selected bulk item changes so status reflects the current item
   useEffect(() => {
     setCopiedAnswerIndex(null)
+    setCoverLetterCopied(false)
+    setGeneratingCoverLetter(false)
+    setGeneratingAnswers(false)
   }, [selectedBulkId])
 
   const [showJsonInput, setShowJsonInput] = useState(false)
@@ -359,6 +362,7 @@ export default function Page() {
       alert('Please enter a job description first.')
       return
     }
+    const id = selected.id
 
     setGeneratingCoverLetter(true)
     try {
@@ -373,8 +377,8 @@ export default function Page() {
       const data = await res.json()
       if (data.error) {
         alert(`Failed to generate cover letter: ${data.error}`)
-      } else if (data.coverLetter && selected.id) {
-        updateBulkItem(selected.id, { coverLetter: data.coverLetter })
+      } else if (data.coverLetter && id) {
+        updateBulkItem(id, { coverLetter: data.coverLetter })
       }
     } catch (e) {
       alert('Failed to generate cover letter')
@@ -1265,6 +1269,7 @@ export default function Page() {
                           alert('Please enter at least one question.')
                           return
                         }
+                        const id = selected.id
 
                         setGeneratingAnswers(true)
                         try {
@@ -1280,8 +1285,8 @@ export default function Page() {
                           const data = await res.json()
                           if (data.error) {
                             alert(`Failed to generate answers: ${data.error}`)
-                          } else if (data.answers && selected.id) {
-                            updateBulkItem(selected.id, { additionalAnswers: data.answers })
+                          } else if (data.answers && id) {
+                            updateBulkItem(id, { additionalAnswers: data.answers })
                           }
                         } catch (e) {
                           alert('Failed to generate answers')
