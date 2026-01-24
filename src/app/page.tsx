@@ -135,6 +135,18 @@ const mockTemplates: Record<string,string> = {
   'hollandcody54@gmail.com': `standard-c`,
 }
 
+type BulkItem = {
+  id: string
+  identifier: string
+  jd: string
+  status: 'generating' | 'done' | 'error'
+  resumeData?: any
+  pdfBase64?: string | null
+  coverLetter?: string | null
+  additionalAnswers?: Array<{ question: string; answer: string }>
+  additionalQuestionsText?: string
+}
+
 export default function Page() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -143,17 +155,24 @@ export default function Page() {
   const [account, setAccount] = useState('')
   const [resumes, setResumes] = useState<Record<string,string>>(mockResumes)
   const templateMap: Record<string,string> = mockTemplates
-  const [jobDesc, setJobDesc] = useState('')
-  const [identifier, setIdentifier] = useState('')
-  const [generated, setGenerated] = useState<string | null>(null)
-  const [pdfBase64, setPdfBase64] = useState<string | null>(null)
-  const [resumeData, setResumeData] = useState<any>(null)
-  const [coverLetter, setCoverLetter] = useState<string | null>(null)
+  const [bulkList, setBulkList] = useState<BulkItem[]>([])
+  const [selectedBulkId, setSelectedBulkId] = useState<string | null>(null)
+  const [bulkInputIdentifier, setBulkInputIdentifier] = useState('')
+  const [bulkInputJd, setBulkInputJd] = useState('')
   const [coverLetterCopied, setCoverLetterCopied] = useState(false)
   const [generatingCoverLetter, setGeneratingCoverLetter] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
-  const [identifierWarning, setIdentifierWarning] = useState<string | null>(null)
+  const selected = selectedBulkId ? bulkList.find((b) => b.id === selectedBulkId) ?? null : null
+
+  const updateBulkItem = (id: string, patch: Partial<BulkItem>) => {
+    setBulkList((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } : b)))
+  }
+
+  // Reset copy state when selected bulk item changes so "Copied!" doesn't stick on wrong answer
+  useEffect(() => {
+    setCopiedAnswerIndex(null)
+  }, [selectedBulkId])
+
   const [showJsonInput, setShowJsonInput] = useState(false)
   const [jsonInput, setJsonInput] = useState('')
   const [jsonError, setJsonError] = useState<string | null>(null)
@@ -183,9 +202,10 @@ export default function Page() {
   const [bidError, setBidError] = useState<string | null>(null)
   const [bidSuccess, setBidSuccess] = useState(false)
   const [additionalQuestions, setAdditionalQuestions] = useState('')
-  const [additionalAnswers, setAdditionalAnswers] = useState<Array<{ question: string; answer: string }>>([])
   const [generatingAnswers, setGeneratingAnswers] = useState(false)
   const [copiedAnswerIndex, setCopiedAnswerIndex] = useState<number | null>(null)
+
+  const questionsForSelected = selected ? (selected.additionalQuestionsText ?? '') : additionalQuestions
 
   const copyToClipboard = async (text: string) => {
     if (!text) return false
@@ -256,34 +276,48 @@ export default function Page() {
     }
   }
 
-  const handleGenerate = async () => {
-    setLoading(true)
-    setGenerated(null)
-    setPdfBase64(null) // Hide download button immediately
-    setResumeData(null) // Clear previous resume data
-    setCoverLetter(null) // Clear previous cover letter
-    setCoverLetterCopied(false) // Reset copy state
-    setAdditionalQuestions('') // Clear previous additional questions
-    setAdditionalAnswers([]) // Clear previous additional answers
-    setCopiedAnswerIndex(null) // Reset copied answer index
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account, jd: jobDesc, resumeContent: resumes[account], template: templateMap[account] }),
-      })
-      const data = await res.json()
-      // route returns resume JSON, optional pdfBase64, and cover letter
-      const resume = data.resume || data
-      setGenerated(JSON.stringify(resume, null, 2) || 'No resume returned')
-      setResumeData(resume)
-      setPdfBase64(data.pdfBase64 || null)
-      // Don't set cover letter here - it will be generated separately
-    } catch (e) {
-      setGenerated('Error generating resume')
-    } finally {
-      setLoading(false)
+  const handleBulkGenerate = () => {
+    const idVal = bulkInputIdentifier.trim()
+    const jdVal = bulkInputJd.trim()
+    if (!idVal) {
+      alert('Please enter an identifier.')
+      return
     }
+    if (!jdVal) {
+      alert('Please enter a job description.')
+      return
+    }
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `bulk-${Date.now()}`
+    const item: BulkItem = {
+      id,
+      identifier: idVal,
+      jd: jdVal,
+      status: 'generating',
+    }
+    setBulkList((prev) => [...prev, item])
+    setBulkInputIdentifier('')
+    setBulkInputJd('')
+    setSelectedBulkId(id)
+
+    ;(async () => {
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            account,
+            jd: jdVal,
+            resumeContent: resumes[account],
+            template: templateMap[account],
+          }),
+        })
+        const data = await res.json()
+        const resume = data.resume || data
+        updateBulkItem(id, { status: 'done', resumeData: resume, pdfBase64: data.pdfBase64 ?? null })
+      } catch (e) {
+        updateBulkItem(id, { status: 'error' })
+      }
+    })()
   }
 
   const validateJson = (jsonString: string): { valid: boolean; data: any; error: string | null } => {
@@ -317,31 +351,30 @@ export default function Page() {
   }
 
   const handleGenerateCoverLetter = async () => {
-    if (!resumeData) {
+    if (!selected?.resumeData) {
       alert('Please generate a resume first.')
       return
     }
-    if (!jobDesc) {
+    if (!selected?.jd) {
       alert('Please enter a job description first.')
       return
     }
 
     setGeneratingCoverLetter(true)
-    setCoverLetter(null)
     try {
       const res = await fetch('/api/generate-cover-letter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          resumeJson: resumeData,
-          jobDescription: jobDesc
+        body: JSON.stringify({
+          resumeJson: selected.resumeData,
+          jobDescription: selected.jd,
         }),
       })
       const data = await res.json()
       if (data.error) {
         alert(`Failed to generate cover letter: ${data.error}`)
-      } else if (data.coverLetter) {
-        setCoverLetter(data.coverLetter)
+      } else if (data.coverLetter && selected.id) {
+        updateBulkItem(selected.id, { coverLetter: data.coverLetter })
       }
     } catch (e) {
       alert('Failed to generate cover letter')
@@ -1005,84 +1038,104 @@ export default function Page() {
           <>
           {!showJsonInput && (
             <>
-              <label className="block text-xl font-semibold">Identifier</label>
-              <input value={identifier} onChange={(e) => {
-                setIdentifier(e.target.value)
-                setIdentifierWarning(null)
-              }} placeholder="Job Title, Company, or Role" className="mt-1 p-2 border rounded w-full text-base" />
-              {identifierWarning && (
-                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
-                  {identifierWarning}
-                </div>
-              )}
-
-              <label className="block text-xl font-semibold mt-4">Job description</label>
-              <textarea value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} rows={6} className="mt-1 p-2 border rounded w-full text-base" />
-
-              <div className="mt-4 flex items-start justify-between">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <button onClick={handleGenerate} className="px-4 py-2 bg-blue-600 text-white rounded" disabled={loading}>
-                    {loading ? 'Generating...' : 'Generate Updated Resume'}
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-lg font-semibold">Bulk list</h3>
+                    <button
+                      onClick={() => { setBulkList([]); setSelectedBulkId(null) }}
+                      className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    >
+                      Clear list
+                    </button>
+                  </div>
+                  <div className="border rounded h-[17rem] overflow-y-auto bg-gray-50">
+                    {bulkList.length === 0 ? (
+                      <div className="p-4 text-sm text-gray-500">Add identifier and JD, then click Generate Bulk.</div>
+                    ) : (
+                      bulkList.map((b) => (
+                        <div
+                          key={b.id}
+                          onClick={() => setSelectedBulkId(b.id)}
+                          className={`p-3 border-b last:border-b-0 cursor-pointer flex justify-between items-center ${
+                            selectedBulkId === b.id ? 'bg-blue-50 border-l-4 border-l-blue-400' : 'hover:bg-gray-100'
+                          }`}
+                        >
+                          <span className="text-sm font-medium truncate flex-1">{b.identifier || '(no identifier)'}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            b.status === 'generating' ? 'bg-amber-100 text-amber-800' :
+                            b.status === 'done' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {b.status === 'generating' ? 'Generating' : b.status === 'done' ? 'Done' : 'Error'}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <div className="h-[17rem] flex flex-col">
+                    <label className="block text-lg font-semibold">Identifier</label>
+                    <input
+                      value={bulkInputIdentifier}
+                      onChange={(e) => setBulkInputIdentifier(e.target.value)}
+                      placeholder="Job Title, Company, or Role"
+                      className="mt-1 p-2 border rounded w-full text-base"
+                    />
+                    <label className="block text-lg font-semibold mt-3">Job description</label>
+                    <textarea
+                      value={bulkInputJd}
+                      onChange={(e) => setBulkInputJd(e.target.value)}
+                      rows={6}
+                      className="mt-1 flex-1 min-h-0 p-2 border rounded w-full text-base resize-none"
+                    />
+                  </div>
+                  <button
+                    onClick={handleBulkGenerate}
+                    className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!bulkInputIdentifier.trim() || !bulkInputJd.trim()}
+                  >
+                    Generate Bulk
                   </button>
                 </div>
+              </div>
 
-                <div>
-                  {pdfBase64 && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-semibold">Generated Resume</h3>
+                  {selected?.pdfBase64 && (
                     <button
-                      className="ml-4 px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={downloading}
                       onClick={async () => {
-                        // Check if identifier is empty
-                        if (!identifier || !identifier.trim()) {
-                          setIdentifierWarning('Please enter an identifier before downloading.')
-                          return
-                        }
-                        
-                        setIdentifierWarning(null)
                         setDownloading(true)
-                        
-                        // Save resume data to Supabase
-                        if (resumeData) {
+                        if (selected?.resumeData) {
                           try {
                             await fetch('/api/save-resume', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ 
-                                json: resumeData,
-                                identifier: identifier && identifier.trim() ? identifier.trim() : null,
-                                description: jobDesc && jobDesc.trim() ? jobDesc.trim() : null,
-                                username
+                              body: JSON.stringify({
+                                json: selected.resumeData,
+                                identifier: selected.identifier?.trim() || null,
+                                description: selected.jd?.trim() || null,
+                                username,
                               }),
                             })
                           } catch (error) {
-                            console.error('Failed to save resume to Supabase:', error)
-                            // Continue with download even if save fails
+                            console.error('Failed to save resume to Supabase', error)
                           }
                         }
-
-                        // Download the PDF
                         const link = document.createElement('a')
-                        link.href = `data:application/pdf;base64,${pdfBase64}`
-                        
-                        // Extract first name from resume data
+                        link.href = `data:application/pdf;base64,${selected!.pdfBase64}`
                         let firstName = ''
-                        if (resumeData?.name) {
-                          const nameParts = resumeData.name.trim().split(/\s+/)
+                        if (selected?.resumeData?.name) {
+                          const nameParts = selected.resumeData.name.trim().split(/\s+/)
                           firstName = nameParts[0] || ''
                         }
-                        
-                        // Use first name + identifier as filename
-                        const identifierPart = identifier && identifier.trim() ? identifier.trim() : ''
-                        const filename = identifierPart 
-                          ? `${firstName}-resume.pdf`
-                          : firstName 
-                            ? `${firstName}-resume.pdf`
-                            : 'resume.pdf'
-                        
+                        const identifierPart = selected?.identifier?.trim() || ''
+                        const filename = identifierPart ? `${firstName}-resume.pdf` : firstName ? `${firstName}-resume.pdf` : 'resume.pdf'
                         link.download = filename
                         link.click()
-                        // initialize identifier after download
-                        setIdentifier('')
                         setDownloading(false)
                       }}
                     >
@@ -1090,12 +1143,8 @@ export default function Page() {
                     </button>
                   )}
                 </div>
-              </div>
-
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold">Generated Resume</h3>
                 <div className="mt-2 p-4 border rounded bg-white text-sm whitespace-pre-wrap overflow-y-auto" style={{ maxHeight: '200px' }}>
-                  {generated ?? 'No generated resume yet.'}
+                  {selected ? (JSON.stringify(selected.resumeData, null, 2) || 'No resume returned') : 'Select an item from the list.'}
                 </div>
               </div>
 
@@ -1106,27 +1155,24 @@ export default function Page() {
                     <button
                       onClick={handleGenerateCoverLetter}
                       className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:enabled:bg-green-700 disabled:opacity-50"
-                      disabled={generatingCoverLetter || !resumeData || loading}
+                      disabled={generatingCoverLetter || !selected?.resumeData}
                     >
                       {generatingCoverLetter ? 'Generating...' : 'Generate Cover Letter'}
                     </button>
-                    {coverLetter && (
+                    {selected?.coverLetter && (
                       <>
                         <button
                           onClick={async () => {
                             try {
-                              // Extract first name from resume data
                               let firstName = ''
-                              if (resumeData?.name) {
-                                const nameParts = resumeData.name.trim().split(/\s+/)
+                              if (selected?.resumeData?.name) {
+                                const nameParts = selected.resumeData.name.trim().split(/\s+/)
                                 firstName = nameParts[0] || ''
                               }
-                              
-                              // Call API to generate .docx file
                               const res = await fetch('/api/generate-docx', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ coverLetter }),
+                                body: JSON.stringify({ coverLetter: selected!.coverLetter }),
                               })
                               
                               if (!res.ok) {
@@ -1151,15 +1197,12 @@ export default function Page() {
                         </button>
                         <button
                           onClick={() => {
-                            // Extract first name from resume data
                             let firstName = ''
-                            if (resumeData?.name) {
-                              const nameParts = resumeData.name.trim().split(/\s+/)
+                            if (selected?.resumeData?.name) {
+                              const nameParts = selected.resumeData.name.trim().split(/\s+/)
                               firstName = nameParts[0] || ''
                             }
-                            
-                            // Create and download the text file
-                            const blob = new Blob([coverLetter], { type: 'text/plain' })
+                            const blob = new Blob([selected!.coverLetter!], { type: 'text/plain' })
                             const url = URL.createObjectURL(blob)
                             const link = document.createElement('a')
                             link.href = url
@@ -1174,7 +1217,7 @@ export default function Page() {
                         <button
                           onClick={async () => {
                             try {
-                              const copied = await copyToClipboard(coverLetter)
+                              const copied = await copyToClipboard(selected?.coverLetter ?? '')
                               if (copied) {
                                 setCoverLetterCopied(true)
                                 setTimeout(() => setCoverLetterCopied(false), 2000)
@@ -1193,13 +1236,13 @@ export default function Page() {
                     )}
                   </div>
                 </div>
-                {coverLetter ? (
+                {selected?.coverLetter ? (
                   <div className="mt-2 p-4 border rounded bg-white text-sm whitespace-pre-wrap">
-                    {coverLetter}
+                    {selected.coverLetter}
                   </div>
                 ) : (
                   <div className="mt-2 p-4 border rounded bg-gray-50 text-sm text-gray-500">
-                    Click "Generate Cover Letter" to create a cover letter based on your resume and job description.
+                    {selected ? 'Click "Generate Cover Letter" to create a cover letter based on your resume and job description.' : 'Select an item from the list.'}
                   </div>
                 )}
 
@@ -1209,36 +1252,36 @@ export default function Page() {
                     <h3 className="text-lg font-semibold">Additional Questions</h3>
                     <button
                       onClick={async () => {
-                        if (!resumeData) {
+                        if (!selected?.resumeData) {
                           alert('Please generate a resume first.')
                           return
                         }
-                        if (!jobDesc) {
+                        if (!selected?.jd) {
                           alert('Please enter a job description first.')
                           return
                         }
-                        if (!additionalQuestions.trim()) {
+                        const questionsToUse = selected ? (selected.additionalQuestionsText ?? '') : additionalQuestions
+                        if (!questionsToUse.trim()) {
                           alert('Please enter at least one question.')
                           return
                         }
 
                         setGeneratingAnswers(true)
-                        setAdditionalAnswers([])
                         try {
                           const res = await fetch('/api/answer-additional-questions', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                              resumeJson: resumeData,
-                              jobDescription: jobDesc,
-                              questions: additionalQuestions
+                              resumeJson: selected.resumeData,
+                              jobDescription: selected.jd,
+                              questions: questionsToUse
                             }),
                           })
                           const data = await res.json()
                           if (data.error) {
                             alert(`Failed to generate answers: ${data.error}`)
-                          } else if (data.answers) {
-                            setAdditionalAnswers(data.answers)
+                          } else if (data.answers && selected.id) {
+                            updateBulkItem(selected.id, { additionalAnswers: data.answers })
                           }
                         } catch (e) {
                           alert('Failed to generate answers')
@@ -1248,24 +1291,31 @@ export default function Page() {
                         }
                       }}
                       className="px-3 py-1 text-sm bg-purple-600 text-white rounded hover:enabled:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={generatingAnswers || !resumeData || loading || !additionalQuestions.trim()}
+                      disabled={generatingAnswers || !selected?.resumeData || !questionsForSelected.trim()}
                     >
                       {generatingAnswers ? 'Generating...' : 'Answer Additional Questions'}
                     </button>
                   </div>
                   <textarea
-                    value={additionalQuestions}
-                    onChange={(e) => setAdditionalQuestions(e.target.value)}
+                    value={questionsForSelected}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      if (selected?.id) {
+                        updateBulkItem(selected.id, { additionalQuestionsText: v })
+                      } else {
+                        setAdditionalQuestions(v)
+                      }
+                    }}
                     rows={4}
                     className="w-full p-2 border rounded text-sm"
                     placeholder="Enter your questions here, one per line..."
                   />
 
                   {/* Display Answers */}
-                  {additionalAnswers.length > 0 && (
+                  {(selected?.additionalAnswers ?? []).length > 0 ? (
                     <div className="mt-4 space-y-4">
-                      {additionalAnswers.map((item, index) => (
-                        <div key={index} className="p-4 border rounded bg-white">
+                      {(selected?.additionalAnswers ?? []).map((item, index) => (
+                        <div key={`${selectedBulkId ?? ''}-${index}`} className="p-4 border rounded bg-white">
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="text-sm font-semibold text-gray-700">{item.question}</h4>
                             <button
@@ -1293,7 +1343,11 @@ export default function Page() {
                         </div>
                       ))}
                     </div>
-                  )}
+                  ) : selected ? (
+                    <div className="mt-4 p-3 border rounded bg-gray-50 text-sm text-gray-500">
+                      No answers yet. Enter questions above and click Answer Additional Questions.
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </>
