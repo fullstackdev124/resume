@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+/node/
+/node-extract-tmp
+*.zip
 /.pnp
 .pnp.*
 .yarn/*
@@ -19,6 +22,7 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store

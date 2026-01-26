@@ -2,9 +2,13 @@
   "name": "resume",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 3333",
     "build": "next build",
+    "build:next": "next build && node scripts/prepare-standalone.js",
+    "electron:dev": "electron .",
+    "electron:build": "node scripts/ensure-node-binary.js && npm run build:next && electron-builder --win",
     "start": "next start -H 0.0.0.0 -p 3333",
     "lint": "eslint"
   },
@@ -23,6 +27,8 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3",
     "@tailwindcss/postcss": "^4",
     "@types/jszip": "^3.4.1",
     "@types/mustache": "^4.2.6",
@@ -33,5 +39,16 @@
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "build": {
+    "appId": "com.resume.app",
+    "productName": "Resume",
+    "directories": { "output": "dist" },
+    "files": ["electron", "package.json"],
+    "extraResources": [
+      { "from": ".next/standalone", "to": "standalone" },
+      { "from": "node/win", "to": "node" }
+    ],
+    "win": { "target": "portable", "signAndEditExecutable": false }
   }
 }
