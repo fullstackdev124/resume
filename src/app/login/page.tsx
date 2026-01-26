@@ -2,6 +2,11 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export default function LoginPage() {
   const router = useRouter()
@@ -16,30 +21,69 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-
-      const data = await res.json()
-
-      if (res.ok && data.success) {
-        // Store login info in localStorage
-        localStorage.setItem('username', data.username)
-        localStorage.setItem('password', password)
-        localStorage.setItem('accounts', JSON.stringify(data.accounts))
-        // Expire credentials after 24 hours
-        const expiresAt = Date.now() + 24 * 60 * 60 * 1000
-        localStorage.setItem('authExpiresAt', String(expiresAt))
-        // Redirect to main page
-        router.push('/')
-      } else {
-        setError(data.error || 'Login failed')
+      if (!username || !password) {
+        setError('Username and password are required')
+        setLoading(false)
+        return
       }
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        setError('Database configuration is missing. Please contact support.')
+        setLoading(false)
+        return
+      }
+
+      // Query Supabase directly (works with static export)
+      const { data: user, error } = await supabase
+        .from("users")
+        .select("password, mapping")
+        .eq("user_id", username)
+        .maybeSingle()
+
+      if (error) {
+        console.error("Supabase error during login:", error)
+        setError("Database error during login")
+        setLoading(false)
+        return
+      }
+
+      if (!user || user.password !== password) {
+        setError("Invalid username or password")
+        setLoading(false)
+        return
+      }
+
+      // Parse mapping: comma-separated account strings
+      const accounts = (user.mapping || "")
+        .split(",")
+        .map((s: string) => s.trim())
+        .filter(Boolean)
+
+      if (accounts.length === 0) {
+        setError("No accounts mapped for this user")
+        setLoading(false)
+        return
+      }
+
+      // Store login info in localStorage
+      localStorage.setItem('username', username)
+      localStorage.setItem('password', password)
+      localStorage.setItem('accounts', JSON.stringify(accounts))
+      // Expire credentials after 24 hours
+      const expiresAt = Date.now() + 24 * 60 * 60 * 1000
+      localStorage.setItem('authExpiresAt', String(expiresAt))
+      // Redirect to main page
+      router.push('/')
     } catch (err) {
-      setError('Failed to connect to server')
-      console.error(err)
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      if (errorMessage.includes('fetch') || errorMessage.includes('network')) {
+        setError('Failed to connect to database. Please check your internet connection.')
+      } else if (!supabaseUrl || !supabaseAnonKey) {
+        setError('Database configuration is missing. Please contact support.')
+      } else {
+        setError(`Login failed: ${errorMessage}`)
+      }
+      console.error('Login error:', err)
     } finally {
       setLoading(false)
     }

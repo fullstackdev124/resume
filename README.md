@@ -15,13 +15,6 @@ npm run build
 npm start
 ```
 
-### Windows executable (Electron)
-
-The app can run as a Windows desktop exe. Downloads (resume PDF, cover letter .docx/.txt) are saved to your **Downloads** folder and **overwrite** existing files with the same name (no `"file (1).pdf"`).
-
-- **Dev (Electron + Next):** `npm run electron:dev` — starts Electron and the Next dev server.
-- **Build exe:** `npm run electron:build` — produces a portable `.exe` in `dist/` (run `npm install` first to get `electron` and `electron-builder`).
-
 Notes
 
 - App scaffolded with `create-next-app` (TypeScript template).

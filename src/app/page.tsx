@@ -3,8 +3,19 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AccountSelector from '../components/AccountSelector'
+import {
+  supabase,
+  getMyInterviews,
+  getMissingInterviews,
+  saveSchedule,
+  updateSchedule,
+  deleteSchedule,
+  saveBid,
+  saveResume,
+} from '../lib/supabase-client'
+import { apiFetch } from '../lib/api-client'
 
-// Helpers for file save: in Electron we write to Downloads and overwrite if exists (no "file (1).pdf")
+// Helpers for file save
 function arrayBufferToBase64(ab: ArrayBuffer): string {
   const u8 = new Uint8Array(ab)
   let s = ''
@@ -18,12 +29,20 @@ async function saveFile(
   encoding: 'base64' | 'utf8',
   mime?: string
 ): Promise<void> {
-  const api = typeof window !== 'undefined' ? (window as unknown as { electronAPI?: { saveFile: (o: { filename: string; data: string; encoding: string }) => Promise<{ ok?: boolean; error?: string }> } }).electronAPI : undefined
-  if (api?.saveFile) {
-    const res = await api.saveFile({ filename, data, encoding })
-    if (!res?.ok) alert(res?.error || 'Failed to save file')
-    return
+  // Check if running in Tauri
+  if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+    try {
+      // @ts-ignore - Tauri types may not be available until package is installed
+      const { invoke } = await import('@tauri-apps/api/core')
+      await invoke('save_file', { filename, data, encoding })
+      return
+    } catch (err) {
+      console.error('Tauri save failed, falling back to browser download:', err)
+      // Fall through to browser download
+    }
   }
+  
+  // Fallback to browser download
   const link = document.createElement('a')
   if (encoding === 'base64' && mime) {
     link.href = `data:${mime};base64,${data}`
@@ -179,6 +198,7 @@ type BulkItem = {
   coverLetter?: string | null
   additionalAnswers?: Array<{ question: string; answer: string }>
   additionalQuestionsText?: string
+  error?: string
 }
 
 export default function Page() {
@@ -293,20 +313,10 @@ export default function Page() {
     setMissingInterviewsError(null)
 
     try {
-      const res = await fetch('/api/get-my-interviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailPrefix }),
-      })
-
-      const data = await res.json()
-      if (data.error) {
-        setMyInterviewsError(data.error)
-      } else {
-        setMyInterviews(data.schedules || [])
-      }
+      const data = await getMyInterviews(emailPrefix)
+      setMyInterviews(data.schedules || [])
     } catch (e) {
-      setMyInterviewsError('Failed to fetch my interviews')
+      setMyInterviewsError(e instanceof Error ? e.message : 'Failed to fetch my interviews')
       console.error(e)
     } finally {
       setLoadingMyInterviews(false)
@@ -338,7 +348,7 @@ export default function Page() {
 
     ;(async () => {
       try {
-        const res = await fetch('/api/generate', {
+        const res = await apiFetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -348,11 +358,54 @@ export default function Page() {
             template: templateMap[account],
           }),
         })
+        
+        // Check if fetch failed (network error, API route doesn't exist)
+        if (!res.ok) {
+          const contentType = res.headers.get('content-type') || ''
+          let errorMessage = 'Server-side generation is not available in the executable version. This feature requires a running server.'
+          
+          // If response is HTML (like a 404 page), we know the API route doesn't exist
+          if (contentType.includes('text/html')) {
+            errorMessage = 'Resume generation API is not available in the executable version. This feature requires a Next.js server. Please use the web version instead.'
+          } else {
+            // Try to parse as JSON for proper error messages
+            try {
+              const errorText = await res.text()
+              const errorData = JSON.parse(errorText)
+              if (errorData.error) {
+                errorMessage = errorData.error
+              }
+            } catch {
+              // If response is not JSON, use default message
+            }
+          }
+          throw new Error(errorMessage)
+        }
+        
+        // Check content type before parsing JSON
+        const contentType = res.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          throw new Error('Resume generation API is not available in the executable version. This feature requires a Next.js server.')
+        }
+        
         const data = await res.json()
+        if (data.error) {
+          throw new Error(data.error)
+        }
+        
         const resume = data.resume || data
         updateBulkItem(id, { status: 'done', resumeData: resume, pdfBase64: data.pdfBase64 ?? null, pdfError: data.pdfError ?? null })
       } catch (e) {
-        updateBulkItem(id, { status: 'error' })
+        // Handle network errors (API route doesn't exist in static builds)
+        let errorMsg = 'Generation failed'
+        if (e instanceof TypeError && e.message.includes('fetch')) {
+          errorMsg = 'Cannot connect to server. Resume generation requires a running server and is not available in the executable version. Please use the web version instead.'
+        } else if (e instanceof SyntaxError && e.message.includes('JSON')) {
+          errorMsg = 'Resume generation API is not available in the executable version. The server returned an invalid response. Please use the web version instead.'
+        } else if (e instanceof Error) {
+          errorMsg = e.message
+        }
+        updateBulkItem(id, { status: 'error', error: errorMsg })
       }
     })()
   }
@@ -400,7 +453,7 @@ export default function Page() {
 
     setGeneratingCoverLetter(true)
     try {
-      const res = await fetch('/api/generate-cover-letter', {
+      const res = await apiFetch('/api/generate-cover-letter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -408,6 +461,11 @@ export default function Page() {
           jobDescription: selected.jd,
         }),
       })
+      
+      if (!res.ok) {
+        throw new Error('Server-side generation is not available in static builds. Please use the web version.')
+      }
+      
       const data = await res.json()
       if (data.error) {
         alert(`Failed to generate cover letter: ${data.error}`)
@@ -415,7 +473,8 @@ export default function Page() {
         updateBulkItem(id, { coverLetter: data.coverLetter })
       }
     } catch (e) {
-      alert('Failed to generate cover letter')
+      const errorMsg = e instanceof Error ? e.message : 'Failed to generate cover letter'
+      alert(errorMsg)
       console.error(e)
     } finally {
       setGeneratingCoverLetter(false)
@@ -432,7 +491,7 @@ export default function Page() {
     setGeneratingJsonPdf(true)
     setJsonError(null)
     try {
-      const res = await fetch('/api/generate-pdf', {
+      const res = await apiFetch('/api/generate-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -440,6 +499,11 @@ export default function Page() {
           template: templateMap[account] || 'standard-a'
         }),
       })
+      
+      if (!res.ok) {
+        throw new Error('PDF generation requires a server. This feature is not available in static builds.')
+      }
+      
       const data = await res.json()
       if (data.error) {
         setJsonError(data.error)
@@ -448,7 +512,7 @@ export default function Page() {
         await saveFile(filename, data.pdfBase64, 'base64', 'application/pdf')
       }
     } catch (e) {
-      setJsonError('Failed to generate PDF')
+      setJsonError(e instanceof Error ? e.message : 'Failed to generate PDF')
     } finally {
       setGeneratingJsonPdf(false)
     }
@@ -488,15 +552,15 @@ export default function Page() {
             }
             
             // Verify user still exists in Supabase users table with matching password
-            const verifyRes = await fetch('/api/verify-user', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password }),
-            })
+            const { data: user, error: verifyError } = await supabase
+              .from("users")
+              .select("user_id, password")
+              .eq("user_id", username)
+              .maybeSingle()
             
-            if (!verifyRes.ok) {
-              // API error, assume user doesn't exist for safety
-              console.error('Failed to verify user:', verifyRes.status)
+            if (verifyError) {
+              // Database error, assume user doesn't exist for safety
+              console.error('Failed to verify user:', verifyError)
               localStorage.removeItem('username')
               localStorage.removeItem('password')
               localStorage.removeItem('accounts')
@@ -505,9 +569,7 @@ export default function Page() {
               return
             }
             
-            const verifyData = await verifyRes.json()
-            
-            if (!verifyData.exists) {
+            if (!user || user.password !== password) {
               // User no longer exists in database or password doesn't match, clear auth and redirect
               localStorage.removeItem('username')
               localStorage.removeItem('password')
@@ -571,7 +633,7 @@ export default function Page() {
         </a>
       </div>
       <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-        <strong>Note:</strong> You can generate multiple resumes simultaneously. However, if you're using the Windows executable version, downloaded files will be overwritten. Please complete each job one at a time to avoid file conflicts.
+        <strong>Note:</strong> You can generate multiple resumes simultaneously. Downloaded files will be overwritten(windows version only) if they have the same name. Please complete each job one at a time to avoid file conflicts.
       </div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
@@ -729,31 +791,21 @@ export default function Page() {
                         emailPrefix = parts[0].trim()
                       }
 
-                      const res = await fetch('/api/save-schedule', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          email: emailPrefix,
-                          title: interviewTitle.trim(),
-                          company: interviewCompany.trim(),
-                          role: interviewRole.trim() || null,
-                        }),
-                      })
-
-                      const data = await res.json()
-                      if (data.error) {
-                        setScheduleError(data.error)
-                      } else {
-                        setScheduleSuccess(true)
-                        // Clear form
-                        setInterviewTitle('')
-                        setInterviewCompany('')
-                        setInterviewRole('')
-                        // Clear success message after 3 seconds
-                        setTimeout(() => setScheduleSuccess(false), 3000)
-                      }
+                      await saveSchedule(
+                        emailPrefix,
+                        interviewTitle.trim(),
+                        interviewCompany.trim(),
+                        interviewRole.trim() || undefined
+                      )
+                      setScheduleSuccess(true)
+                      // Clear form
+                      setInterviewTitle('')
+                      setInterviewCompany('')
+                      setInterviewRole('')
+                      // Clear success message after 3 seconds
+                      setTimeout(() => setScheduleSuccess(false), 3000)
                     } catch (e) {
-                      setScheduleError('Failed to save schedule')
+                      setScheduleError(e instanceof Error ? e.message : 'Failed to save schedule')
                       console.error(e)
                     } finally {
                       setSavingSchedule(false)
@@ -799,20 +851,10 @@ export default function Page() {
                         setMyInterviewsError(null)
 
                         try {
-                          const res = await fetch('/api/get-missing-interviews', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: emailPrefix }),
-                          })
-
-                          const data = await res.json()
-                          if (data.error) {
-                            setMissingInterviewsError(data.error)
-                          } else {
-                            setMissingInterviews(data.missingSchedules || [])
-                          }
+                          const data = await getMissingInterviews(emailPrefix)
+                          setMissingInterviews(data.missingSchedules || [])
                         } catch (e) {
-                          setMissingInterviewsError('Failed to fetch missing interviews')
+                          setMissingInterviewsError(e instanceof Error ? e.message : 'Failed to fetch missing interviews')
                           console.error(e)
                         } finally {
                           setLoadingMissingInterviews(false)
@@ -873,27 +915,17 @@ export default function Page() {
                                       setMyInterviewsError(null)
 
                                       try {
-                                        const res = await fetch('/api/update-schedule', {
-                                          method: 'PUT',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({
-                                            id: interview.id,
-                                            title: editingTitle.trim(),
-                                            company: editingCompany.trim(),
-                                            role: editingRole.trim() || null,
-                                          }),
-                                        })
-
-                                        const data = await res.json()
-                                        if (data.error) {
-                                          setMyInterviewsError(data.error)
-                                        } else {
-                                          setEditingInterviewId(null)
-                                          setEditingTitle('')
-                                          setEditingCompany('')
-                                          setEditingRole('')
-                                          await fetchMyInterviews()
-                                        }
+                                        await updateSchedule(
+                                          interview.id,
+                                          editingTitle.trim(),
+                                          editingCompany.trim(),
+                                          editingRole.trim() || undefined
+                                        )
+                                        setEditingInterviewId(null)
+                                        setEditingTitle('')
+                                        setEditingCompany('')
+                                        setEditingRole('')
+                                        await fetchMyInterviews()
                                       } catch (e) {
                                         setMyInterviewsError('Failed to update schedule')
                                         console.error(e)
@@ -953,20 +985,10 @@ export default function Page() {
                                         setMyInterviewsError(null)
 
                                         try {
-                                          const res = await fetch('/api/delete-schedule', {
-                                            method: 'DELETE',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ id: interview.id }),
-                                          })
-
-                                          const data = await res.json()
-                                          if (data.error) {
-                                            setMyInterviewsError(data.error)
-                                          } else {
-                                            await fetchMyInterviews()
-                                          }
+                                          await deleteSchedule(interview.id)
+                                          await fetchMyInterviews()
                                         } catch (e) {
-                                          setMyInterviewsError('Failed to delete schedule')
+                                          setMyInterviewsError(e instanceof Error ? e.message : 'Failed to delete schedule')
                                           console.error(e)
                                         } finally {
                                           setDeletingInterviewId(null)
@@ -1040,51 +1062,28 @@ export default function Page() {
                                     setBidSuccess(false)
 
                                     try {
-                                      const res = await fetch('/api/save-bid', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                          schedule_id: interview.id,
-                                          email: emailPrefix,
-                                        }),
-                                      })
-
-                                      const data = await res.json()
-                                      if (data.error) {
-                                        setBidError(data.error)
-                                      } else {
-                                        setBidSuccess(true)
-                                        // Clear success message after 3 seconds
-                                        setTimeout(() => setBidSuccess(false), 3000)
+                                      await saveBid(interview.id, emailPrefix)
+                                      setBidSuccess(true)
+                                      // Clear success message after 3 seconds
+                                      setTimeout(() => setBidSuccess(false), 3000)
+                                      
+                                      // Refresh missing interviews list to remove the bid item
+                                      if (lastViewedSection === 'missing') {
+                                        setLoadingMissingInterviews(true)
+                                        setMissingInterviewsError(null)
                                         
-                                        // Refresh missing interviews list to remove the bid item
-                                        if (lastViewedSection === 'missing') {
-                                          setLoadingMissingInterviews(true)
-                                          setMissingInterviewsError(null)
-                                          
-                                          try {
-                                            const refreshRes = await fetch('/api/get-missing-interviews', {
-                                              method: 'POST',
-                                              headers: { 'Content-Type': 'application/json' },
-                                              body: JSON.stringify({ email: emailPrefix }),
-                                            })
-                                            
-                                            const refreshData = await refreshRes.json()
-                                            if (refreshData.error) {
-                                              setMissingInterviewsError(refreshData.error)
-                                            } else {
-                                              setMissingInterviews(refreshData.missingSchedules || [])
-                                            }
-                                          } catch (e) {
-                                            setMissingInterviewsError('Failed to refresh missing interviews')
-                                            console.error(e)
-                                          } finally {
-                                            setLoadingMissingInterviews(false)
-                                          }
+                                        try {
+                                          const refreshData = await getMissingInterviews(emailPrefix)
+                                          setMissingInterviews(refreshData.missingSchedules || [])
+                                        } catch (e) {
+                                          setMissingInterviewsError(e instanceof Error ? e.message : 'Failed to refresh missing interviews')
+                                          console.error(e)
+                                        } finally {
+                                          setLoadingMissingInterviews(false)
                                         }
                                       }
                                     } catch (e) {
-                                      setBidError('Failed to place bid')
+                                      setBidError(e instanceof Error ? e.message : 'Failed to save bid')
                                       console.error(e)
                                     } finally {
                                       setBiddingScheduleId(null)
@@ -1134,17 +1133,24 @@ export default function Page() {
                         <div
                           key={b.id}
                           onClick={() => setSelectedBulkId(b.id)}
-                          className={`p-3 border-b last:border-b-0 cursor-pointer flex justify-between items-center ${
+                          className={`p-3 border-b last:border-b-0 cursor-pointer flex flex-col gap-1 ${
                             selectedBulkId === b.id ? 'bg-blue-50 border-l-4 border-l-blue-400' : 'hover:bg-gray-100'
                           }`}
                         >
-                          <span className="text-sm font-medium truncate flex-1">{b.identifier || '(no identifier)'}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${
-                            b.status === 'generating' ? 'bg-amber-100 text-amber-800' :
-                            b.status === 'done' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`}>
-                            {b.status === 'generating' ? 'Generating' : b.status === 'done' ? 'Done' : 'Error'}
-                          </span>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium truncate flex-1">{b.identifier || '(no identifier)'}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              b.status === 'generating' ? 'bg-amber-100 text-amber-800' :
+                              b.status === 'done' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              {b.status === 'generating' ? 'Generating' : b.status === 'done' ? 'Done' : 'Error'}
+                            </span>
+                          </div>
+                          {b.status === 'error' && b.error && (
+                            <div className="text-xs text-red-600 mt-1 break-words">
+                              {b.error}
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -1188,16 +1194,12 @@ export default function Page() {
                         setDownloading(true)
                         if (selected?.resumeData) {
                           try {
-                            await fetch('/api/save-resume', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                json: selected.resumeData,
-                                identifier: selected.identifier?.trim() || null,
-                                description: selected.jd?.trim() || null,
-                                username,
-                              }),
-                            })
+                            await saveResume(
+                              selected.resumeData,
+                              selected.identifier?.trim() || null,
+                              selected.jd?.trim() || null,
+                              username
+                            )
                           } catch (error) {
                             console.error('Failed to save resume to Supabase', error)
                           }
@@ -1237,12 +1239,14 @@ export default function Page() {
                         <button
                           onClick={async () => {
                             try {
-                              const res = await fetch('/api/generate-docx', {
+                              const res = await apiFetch('/api/generate-docx', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ coverLetter: selected!.coverLetter }),
                               })
-                              if (!res.ok) throw new Error('Failed to generate .docx file')
+                              if (!res.ok) {
+                                throw new Error('DOCX generation requires a server. This feature is not available in static builds.')
+                              }
                               const blob = await res.blob()
                               const ab = await blob.arrayBuffer()
                               const b64 = arrayBufferToBase64(ab)
@@ -1250,7 +1254,8 @@ export default function Page() {
                               await saveFile(filename, b64, 'base64', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                             } catch (err) {
                               console.error('Failed to download .docx:', err)
-                              alert('Failed to download .docx file. Please try again.')
+                              const errorMsg = err instanceof Error ? err.message : 'Failed to download .docx file. Please try again.'
+                              alert(errorMsg)
                             }
                           }}
                           className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
@@ -1321,7 +1326,7 @@ export default function Page() {
 
                         setGeneratingAnswers(true)
                         try {
-                          const res = await fetch('/api/answer-additional-questions', {
+                          const res = await apiFetch('/api/answer-additional-questions', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -1330,6 +1335,11 @@ export default function Page() {
                               questions: questionsToUse
                             }),
                           })
+                          
+                          if (!res.ok) {
+                            throw new Error('AI generation requires a server. This feature is not available in static builds.')
+                          }
+                          
                           const data = await res.json()
                           if (data.error) {
                             alert(`Failed to generate answers: ${data.error}`)
@@ -1337,7 +1347,8 @@ export default function Page() {
                             updateBulkItem(id, { additionalAnswers: data.answers })
                           }
                         } catch (e) {
-                          alert('Failed to generate answers')
+                          const errorMsg = e instanceof Error ? e.message : 'Failed to generate answers'
+                          alert(errorMsg)
                           console.error(e)
                         } finally {
                           setGeneratingAnswers(false)

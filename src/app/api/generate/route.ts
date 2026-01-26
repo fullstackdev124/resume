@@ -1437,7 +1437,7 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
               headless: true,
             })
           } else {
-            // Local development or Electron: Use regular puppeteer
+            // Local development: Use regular puppeteer
             const puppeteerModule = await import('puppeteer')
             const puppeteer = puppeteerModule.default || puppeteerModule
             browser = await puppeteer.launch({
@@ -1471,7 +1471,7 @@ Return ONLY valid JSON, no additional text, no markdown formatting, no code bloc
       const errMsg = pdfErr instanceof Error ? pdfErr.message : String(pdfErr)
       // Provide user-friendly error message
       if (errMsg.includes('Could not find Chrome') || errMsg.includes('Chromium') || errMsg.includes('executable')) {
-        pdfError = 'PDF generation failed: Chromium browser not found. This may occur in packaged Electron apps if Puppeteer dependencies are missing.'
+        pdfError = 'PDF generation failed: Chromium browser not found. Please ensure Puppeteer dependencies are installed.'
       } else {
         pdfError = `PDF generation failed: ${errMsg}`
       }

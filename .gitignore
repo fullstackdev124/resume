@@ -2,9 +2,6 @@
 
 # dependencies
 /node_modules
-/node/
-/node-extract-tmp
-*.zip
 /.pnp
 .pnp.*
 .yarn/*
@@ -19,6 +16,10 @@
 # next.js
 /.next/
 /out/
+
+# tauri
+/src-tauri
+/src-tauri/target/
 
 # production
 /build

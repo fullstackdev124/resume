@@ -2,15 +2,15 @@
   "name": "resume",
   "version": "0.1.0",
   "private": true,
-  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 3333",
     "build": "next build",
-    "build:next": "next build && node scripts/prepare-standalone.js",
-    "electron:dev": "electron .",
-    "electron:build": "node scripts/ensure-node-binary.js && npm run build:next && electron-builder --win",
+    "build:tauri": "next build && node scripts/prepare-standalone.js && node scripts/prepare-tauri-frontend.js && node scripts/prepare-tauri-server.js && node scripts/download-nodejs-portable.js",
     "start": "next start -H 0.0.0.0 -p 3333",
-    "lint": "eslint"
+    "lint": "eslint",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "npm run build:tauri && tauri build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "*",
@@ -24,11 +24,11 @@
     "puppeteer": "^21.8.0",
     "puppeteer-core": "^21.8.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "@tauri-apps/api": "^2.1.1"
   },
   "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.13.3",
+    "@tauri-apps/cli": "^2.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/jszip": "^3.4.1",
     "@types/mustache": "^4.2.6",
@@ -39,17 +39,5 @@
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "build": {
-    "appId": "com.resume.app",
-    "productName": "Resume",
-    "directories": { "output": "dist" },
-    "files": ["electron", "package.json"],
-    "extraResources": [
-      { "from": ".next/standalone", "to": "standalone" },
-      { "from": ".next/standalone/node_modules", "to": "standalone/node_modules" },
-      { "from": "node/win", "to": "node" }
-    ],
-    "win": { "target": "portable", "signAndEditExecutable": false, "compression": "maximum" }
   }
 }
