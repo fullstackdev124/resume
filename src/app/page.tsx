@@ -175,6 +175,7 @@ type BulkItem = {
   status: 'generating' | 'done' | 'error'
   resumeData?: any
   pdfBase64?: string | null
+  pdfError?: string | null
   coverLetter?: string | null
   additionalAnswers?: Array<{ question: string; answer: string }>
   additionalQuestionsText?: string
@@ -349,7 +350,7 @@ export default function Page() {
         })
         const data = await res.json()
         const resume = data.resume || data
-        updateBulkItem(id, { status: 'done', resumeData: resume, pdfBase64: data.pdfBase64 ?? null })
+        updateBulkItem(id, { status: 'done', resumeData: resume, pdfBase64: data.pdfBase64 ?? null, pdfError: data.pdfError ?? null })
       } catch (e) {
         updateBulkItem(id, { status: 'error' })
       }
@@ -443,12 +444,7 @@ export default function Page() {
       if (data.error) {
         setJsonError(data.error)
       } else if (data.pdfBase64) {
-        let firstName = ''
-        if (validation.data?.name) {
-          const nameParts = validation.data.name.trim().split(/\s+/)
-          firstName = nameParts[0] || ''
-        }
-        const filename = firstName ? `${firstName}-resume.pdf` : 'resume.pdf'
+        const filename = 'resume.pdf'
         await saveFile(filename, data.pdfBase64, 'base64', 'application/pdf')
       }
     } catch (e) {
@@ -461,42 +457,89 @@ export default function Page() {
   React.useEffect(() => {
     // Check authentication on mount
     if (typeof window !== 'undefined') {
-      const username = localStorage.getItem('username')
-      const accountsJson = localStorage.getItem('accounts')
-      const expiresAtRaw = localStorage.getItem('authExpiresAt')
-      const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0
-      const isExpired = !expiresAt || Number.isNaN(expiresAt) || Date.now() > expiresAt
+      const checkAuth = async () => {
+        const username = localStorage.getItem('username')
+        const accountsJson = localStorage.getItem('accounts')
+        const expiresAtRaw = localStorage.getItem('authExpiresAt')
+        const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : 0
+        const isExpired = !expiresAt || Number.isNaN(expiresAt) || Date.now() > expiresAt
 
-      if (isExpired) {
-        localStorage.removeItem('username')
-        localStorage.removeItem('accounts')
-        localStorage.removeItem('authExpiresAt')
-        router.push('/login')
-        return
-      }
-      
-      if (username && accountsJson) {
-        try {
-          const accounts = JSON.parse(accountsJson)
-          setUserAccounts(accounts)
-          setUsername(username)
-          setIsAuthenticated(true)
-          if (accounts.length > 0) {
-            setAccount(accounts[0])
-          } else {
+        if (isExpired) {
+          localStorage.removeItem('username')
+          localStorage.removeItem('password')
+          localStorage.removeItem('accounts')
+          localStorage.removeItem('authExpiresAt')
+          router.push('/login')
+          return
+        }
+        
+        if (username && accountsJson) {
+          try {
+            // Get password from localStorage
+            const password = localStorage.getItem('password')
+            if (!password) {
+              // No password stored, clear auth and redirect
+              localStorage.removeItem('username')
+              localStorage.removeItem('password')
+              localStorage.removeItem('accounts')
+              localStorage.removeItem('authExpiresAt')
+              router.push('/login')
+              return
+            }
+            
+            // Verify user still exists in Supabase users table with matching password
+            const verifyRes = await fetch('/api/verify-user', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password }),
+            })
+            
+            if (!verifyRes.ok) {
+              // API error, assume user doesn't exist for safety
+              console.error('Failed to verify user:', verifyRes.status)
+              localStorage.removeItem('username')
+              localStorage.removeItem('password')
+              localStorage.removeItem('accounts')
+              localStorage.removeItem('authExpiresAt')
+              router.push('/login')
+              return
+            }
+            
+            const verifyData = await verifyRes.json()
+            
+            if (!verifyData.exists) {
+              // User no longer exists in database or password doesn't match, clear auth and redirect
+              localStorage.removeItem('username')
+              localStorage.removeItem('password')
+              localStorage.removeItem('accounts')
+              localStorage.removeItem('authExpiresAt')
+              router.push('/login')
+              return
+            }
+            
+            const accounts = JSON.parse(accountsJson)
+            setUserAccounts(accounts)
+            setUsername(username)
+            setIsAuthenticated(true)
+            if (accounts.length > 0) {
+              setAccount(accounts[0])
+            } else {
+              router.push('/login')
+            }
+            if (username !== 'local') {
+              setShowInterview(false)
+              setShowJsonInput(false)
+            }
+          } catch (e) {
+            console.error('Failed to verify user or parse accounts:', e)
             router.push('/login')
           }
-          if (username !== 'local') {
-            setShowInterview(false)
-            setShowJsonInput(false)
-          }
-        } catch (e) {
-          console.error('Failed to parse accounts:', e)
+        } else {
           router.push('/login')
         }
-      } else {
-        router.push('/login')
       }
+      
+      checkAuth()
     }
   }, [router])
 
@@ -511,6 +554,7 @@ export default function Page() {
 
   const handleLogout = () => {
     localStorage.removeItem('username')
+    localStorage.removeItem('password')
     localStorage.removeItem('accounts')
     localStorage.removeItem('authExpiresAt')
     router.push('/login')
@@ -525,6 +569,9 @@ export default function Page() {
         >
           Logout
         </a>
+      </div>
+      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+        <strong>Note:</strong> You can generate multiple resumes simultaneously. However, if you're using the Windows executable version, downloaded files will be overwritten. Please complete each job one at a time to avoid file conflicts.
       </div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
@@ -1155,19 +1202,18 @@ export default function Page() {
                             console.error('Failed to save resume to Supabase', error)
                           }
                         }
-                        let firstName = ''
-                        if (selected?.resumeData?.name) {
-                          const nameParts = selected.resumeData.name.trim().split(/\s+/)
-                          firstName = nameParts[0] || ''
-                        }
-                        const identifierPart = selected?.identifier?.trim() || ''
-                        const filename = identifierPart ? `${firstName}-resume.pdf` : firstName ? `${firstName}-resume.pdf` : 'resume.pdf'
+                        const filename = 'resume.pdf'
                         await saveFile(filename, selected!.pdfBase64!, 'base64', 'application/pdf')
                         setDownloading(false)
                       }}
                     >
                       {downloading ? 'Downloading...' : 'Download PDF'}
                     </button>
+                  )}
+                  {selected?.pdfError && (
+                    <div className="text-sm text-red-600 max-w-md">
+                      PDF generation failed: {selected.pdfError}
+                    </div>
                   )}
                 </div>
                 <div className="mt-2 p-4 border rounded bg-white text-sm whitespace-pre-wrap overflow-y-auto" style={{ maxHeight: '200px' }}>
@@ -1191,11 +1237,6 @@ export default function Page() {
                         <button
                           onClick={async () => {
                             try {
-                              let firstName = ''
-                              if (selected?.resumeData?.name) {
-                                const nameParts = selected.resumeData.name.trim().split(/\s+/)
-                                firstName = nameParts[0] || ''
-                              }
                               const res = await fetch('/api/generate-docx', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -1205,7 +1246,7 @@ export default function Page() {
                               const blob = await res.blob()
                               const ab = await blob.arrayBuffer()
                               const b64 = arrayBufferToBase64(ab)
-                              const filename = firstName ? `${firstName}-cover-letter.docx` : 'cover-letter.docx'
+                              const filename = 'cover-letter.docx'
                               await saveFile(filename, b64, 'base64', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                             } catch (err) {
                               console.error('Failed to download .docx:', err)
@@ -1218,12 +1259,7 @@ export default function Page() {
                         </button>
                         <button
                           onClick={async () => {
-                            let firstName = ''
-                            if (selected?.resumeData?.name) {
-                              const nameParts = selected.resumeData.name.trim().split(/\s+/)
-                              firstName = nameParts[0] || ''
-                            }
-                            const filename = firstName ? `${firstName}-cover-letter.txt` : 'cover-letter.txt'
+                            const filename = 'cover-letter.txt'
                             await saveFile(filename, selected!.coverLetter!, 'utf8')
                           }}
                           className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"

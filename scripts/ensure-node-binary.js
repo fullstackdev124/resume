@@ -15,8 +15,9 @@ const projectRoot = path.join(__dirname, "..");
 const nodeWin = path.join(projectRoot, "node", "win");
 const nodeExe = path.join(nodeWin, "node.exe");
 
-if (fs.existsSync(nodeExe)) {
-  console.log("ensure-node-binary: node/win/node.exe already exists.");
+// Skip if we already have the slim bundle (node.exe only, no npm/node_modules)
+if (fs.existsSync(nodeExe) && !fs.existsSync(path.join(nodeWin, "node_modules"))) {
+  console.log("ensure-node-binary: node/win/node.exe (slim) already exists.");
   process.exit(0);
 }
 
@@ -35,20 +36,6 @@ function rm(dir) {
     }
   }
   fs.rmdirSync(dir);
-}
-
-function copyRecursive(src, dest) {
-  if (!fs.existsSync(src)) return;
-  fs.mkdirSync(dest, { recursive: true });
-  for (const name of fs.readdirSync(src)) {
-    const s = path.join(src, name);
-    const d = path.join(dest, name);
-    if (fs.statSync(s).isDirectory()) {
-      copyRecursive(s, d);
-    } else {
-      fs.copyFileSync(s, d);
-    }
-  }
 }
 
 (async () => {
@@ -85,9 +72,19 @@ try {
   if (!fs.existsSync(inner)) {
     throw new Error("Extracted folder not found: " + inner);
   }
-  fs.mkdirSync(path.dirname(nodeWin), { recursive: true });
-  copyRecursive(inner, nodeWin);
-  console.log("ensure-node-binary: copied to node/win");
+  // Remove old node/win (fat or partial) so we can create a slim bundle
+  if (fs.existsSync(nodeWin)) rm(nodeWin);
+  fs.mkdirSync(nodeWin, { recursive: true });
+  // Bundle only node.exe and *.dll (omit npm, npx, corepack, node_modules = ~40MB+)
+  const nodeExeSrc = path.join(inner, "node.exe");
+  if (!fs.existsSync(nodeExeSrc)) throw new Error("node.exe not found in " + inner);
+  fs.copyFileSync(nodeExeSrc, path.join(nodeWin, "node.exe"));
+  for (const name of fs.readdirSync(inner)) {
+    if (name.toLowerCase().endsWith(".dll")) {
+      fs.copyFileSync(path.join(inner, name), path.join(nodeWin, name));
+    }
+  }
+  console.log("ensure-node-binary: copied node.exe (slim) to node/win");
 } finally {
   try { if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath); } catch (_) {}
   try { if (fs.existsSync(extractDir)) rm(extractDir); } catch (_) {}
