@@ -216,6 +216,10 @@ export default function Page() {
   const [coverLetterCopied, setCoverLetterCopied] = useState(false)
   const [generatingCoverLetter, setGeneratingCoverLetter] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [showStatistics, setShowStatistics] = useState(false)
+  const [statisticsData, setStatisticsData] = useState<Array<{ email: string; count: number }>>([])
+  const [loadingStatistics, setLoadingStatistics] = useState(false)
+  const [statisticsError, setStatisticsError] = useState<string | null>(null)
   const selected = selectedBulkId ? bulkList.find((b) => b.id === selectedBulkId) ?? null : null
 
   const updateBulkItem = (id: string, patch: Partial<BulkItem>) => {
@@ -342,8 +346,6 @@ export default function Page() {
       status: 'generating',
     }
     setBulkList((prev) => [...prev, item])
-    setBulkInputIdentifier('')
-    setBulkInputJd('')
     setSelectedBulkId(id)
 
     ;(async () => {
@@ -395,6 +397,10 @@ export default function Page() {
         
         const resume = data.resume || data
         updateBulkItem(id, { status: 'done', resumeData: resume, pdfBase64: data.pdfBase64 ?? null, pdfError: data.pdfError ?? null })
+        
+        // Only clear input fields on success
+        setBulkInputIdentifier('')
+        setBulkInputJd('')
       } catch (e) {
         // Handle network errors (API route doesn't exist in static builds)
         let errorMsg = 'Generation failed'
@@ -406,6 +412,7 @@ export default function Page() {
           errorMsg = e.message
         }
         updateBulkItem(id, { status: 'error', error: errorMsg })
+        // Don't clear input fields on error - keep them so user can retry
       }
     })()
   }
@@ -622,9 +629,53 @@ export default function Page() {
     router.push('/login')
   }
 
+  const handleShowStatistics = async () => {
+    setShowStatistics(true)
+    setLoadingStatistics(true)
+    setStatisticsError(null)
+    
+    try {
+      // Fetch all resume_data records
+      const { data, error } = await supabase
+        .from('resume_data')
+        .select('email')
+      
+      if (error) {
+        throw new Error(`Failed to fetch statistics: ${error.message}`)
+      }
+      
+      // Group by email and count
+      const grouped = (data || []).reduce((acc: Record<string, number>, item: any) => {
+        const email = item.email || '(no email)'
+        acc[email] = (acc[email] || 0) + 1
+        return acc
+      }, {})
+      
+      // Convert to array and sort by count descending
+      const result = Object.entries(grouped)
+        .map(([email, count]) => ({ email, count: count as number }))
+        .sort((a, b) => b.count - a.count)
+      
+      setStatisticsData(result)
+    } catch (e) {
+      setStatisticsError(e instanceof Error ? e.message : 'Failed to load statistics')
+      console.error('Statistics error:', e)
+    } finally {
+      setLoadingStatistics(false)
+    }
+  }
+
   return (
     <main className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-end gap-4 mb-2">
+        {username === 'local' && (
+          <button
+            onClick={handleShowStatistics}
+            className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hover:underline"
+          >
+            Statistics
+          </button>
+        )}
         <a
           onClick={handleLogout}
           className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hover:underline"
@@ -1129,7 +1180,7 @@ export default function Page() {
                     {bulkList.length === 0 ? (
                       <div className="p-4 text-sm text-gray-500">Add identifier and JD, then click Generate Bulk.</div>
                     ) : (
-                      bulkList.map((b) => (
+                      bulkList.map((b, index) => (
                         <div
                           key={b.id}
                           onClick={() => setSelectedBulkId(b.id)}
@@ -1138,7 +1189,9 @@ export default function Page() {
                           }`}
                         >
                           <div className="flex justify-between items-center">
-                            <span className="text-sm font-medium truncate flex-1">{b.identifier || '(no identifier)'}</span>
+                            <span className="text-sm font-medium truncate flex-1">
+                              {index + 1}. {b.identifier || '(no identifier)'}
+                            </span>
                             <span className={`text-xs px-2 py-0.5 rounded ${
                               b.status === 'generating' ? 'bg-amber-100 text-amber-800' :
                               b.status === 'done' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -1453,6 +1506,62 @@ export default function Page() {
           )}
           </>
           )}
+
+      {/* Statistics Modal */}
+      {showStatistics && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Statistics</h2>
+              <button
+                onClick={() => setShowStatistics(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            
+            {loadingStatistics && (
+              <div className="text-center py-8">
+                <div className="text-gray-600">Loading...</div>
+              </div>
+            )}
+            
+            {!loadingStatistics && statisticsError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded text-red-700">
+                {statisticsError}
+              </div>
+            )}
+            
+            {!loadingStatistics && !statisticsError && statisticsData.length > 0 && (
+              <div className="space-y-2">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border p-2 text-left">Email</th>
+                      <th className="border p-2 text-left">Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {statisticsData.map((item, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="border p-2">{item.email}</td>
+                        <td className="border p-2">{item.count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            
+            {!loadingStatistics && !statisticsError && statisticsData.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No statistics available
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       </div>
     </main>
   )
