@@ -4,6 +4,39 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AccountSelector from '../components/AccountSelector'
 
+// Helpers for file save: in Electron we write to Downloads and overwrite if exists (no "file (1).pdf")
+function arrayBufferToBase64(ab: ArrayBuffer): string {
+  const u8 = new Uint8Array(ab)
+  let s = ''
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i])
+  return btoa(s)
+}
+
+async function saveFile(
+  filename: string,
+  data: string,
+  encoding: 'base64' | 'utf8',
+  mime?: string
+): Promise<void> {
+  const api = typeof window !== 'undefined' ? (window as unknown as { electronAPI?: { saveFile: (o: { filename: string; data: string; encoding: string }) => Promise<{ ok?: boolean; error?: string }> } }).electronAPI : undefined
+  if (api?.saveFile) {
+    const res = await api.saveFile({ filename, data, encoding })
+    if (!res?.ok) alert(res?.error || 'Failed to save file')
+    return
+  }
+  const link = document.createElement('a')
+  if (encoding === 'base64' && mime) {
+    link.href = `data:${mime};base64,${data}`
+  } else if (encoding === 'utf8') {
+    link.href = URL.createObjectURL(new Blob([data], { type: 'text/plain' }))
+  } else {
+    return
+  }
+  link.download = filename
+  link.click()
+  if (encoding === 'utf8') URL.revokeObjectURL(link.href)
+}
+
 const allAccounts = [
   'kaylarelyease@gmail.com', 
   'jennabilgriencc@gmail.com',
@@ -410,20 +443,13 @@ export default function Page() {
       if (data.error) {
         setJsonError(data.error)
       } else if (data.pdfBase64) {
-        // Download the PDF immediately
-        const link = document.createElement('a')
-        link.href = `data:application/pdf;base64,${data.pdfBase64}`
-        
-        // Extract first name from resume data
         let firstName = ''
         if (validation.data?.name) {
           const nameParts = validation.data.name.trim().split(/\s+/)
           firstName = nameParts[0] || ''
         }
-        
         const filename = firstName ? `${firstName}-resume.pdf` : 'resume.pdf'
-        link.download = filename
-        link.click()
+        await saveFile(filename, data.pdfBase64, 'base64', 'application/pdf')
       }
     } catch (e) {
       setJsonError('Failed to generate PDF')
@@ -1129,8 +1155,6 @@ export default function Page() {
                             console.error('Failed to save resume to Supabase', error)
                           }
                         }
-                        const link = document.createElement('a')
-                        link.href = `data:application/pdf;base64,${selected!.pdfBase64}`
                         let firstName = ''
                         if (selected?.resumeData?.name) {
                           const nameParts = selected.resumeData.name.trim().split(/\s+/)
@@ -1138,8 +1162,7 @@ export default function Page() {
                         }
                         const identifierPart = selected?.identifier?.trim() || ''
                         const filename = identifierPart ? `${firstName}-resume.pdf` : firstName ? `${firstName}-resume.pdf` : 'resume.pdf'
-                        link.download = filename
-                        link.click()
+                        await saveFile(filename, selected!.pdfBase64!, 'base64', 'application/pdf')
                         setDownloading(false)
                       }}
                     >
@@ -1178,18 +1201,12 @@ export default function Page() {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ coverLetter: selected!.coverLetter }),
                               })
-                              
-                              if (!res.ok) {
-                                throw new Error('Failed to generate .docx file')
-                              }
-                              
+                              if (!res.ok) throw new Error('Failed to generate .docx file')
                               const blob = await res.blob()
-                              const url = URL.createObjectURL(blob)
-                              const link = document.createElement('a')
-                              link.href = url
-                              link.download = firstName ? `${firstName}-cover-letter.docx` : 'cover-letter.docx'
-                              link.click()
-                              URL.revokeObjectURL(url)
+                              const ab = await blob.arrayBuffer()
+                              const b64 = arrayBufferToBase64(ab)
+                              const filename = firstName ? `${firstName}-cover-letter.docx` : 'cover-letter.docx'
+                              await saveFile(filename, b64, 'base64', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                             } catch (err) {
                               console.error('Failed to download .docx:', err)
                               alert('Failed to download .docx file. Please try again.')
@@ -1200,19 +1217,14 @@ export default function Page() {
                           download(.doc)
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             let firstName = ''
                             if (selected?.resumeData?.name) {
                               const nameParts = selected.resumeData.name.trim().split(/\s+/)
                               firstName = nameParts[0] || ''
                             }
-                            const blob = new Blob([selected!.coverLetter!], { type: 'text/plain' })
-                            const url = URL.createObjectURL(blob)
-                            const link = document.createElement('a')
-                            link.href = url
-                            link.download = firstName ? `${firstName}-cover-letter.txt` : 'cover-letter.txt'
-                            link.click()
-                            URL.revokeObjectURL(url)
+                            const filename = firstName ? `${firstName}-cover-letter.txt` : 'cover-letter.txt'
+                            await saveFile(filename, selected!.coverLetter!, 'utf8')
                           }}
                           className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
                         >

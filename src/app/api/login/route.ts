@@ -1,29 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-// Get account mapping from environment or use default
-function getAccountMapping(): Record<string, string[]> {
-  const mapping: Record<string, string[]> = {};
-  
-  // Default: "local" gets all accounts
-  // mapping['local'] = ALL_ACCOUNTS;
-  
-  // Parse account mapping from environment variable
-  // Format: USERNAME1=account1,account2;USERNAME2=account3
-  const accountMapping = process.env.ACCOUNT_MAPPING || '';
-  if (accountMapping) {
-    accountMapping.split(';').forEach(mappingStr => {
-      const [username, accountsStr] = mappingStr.split('=');
-      if (username && accountsStr) {
-        const accounts = accountsStr.split(',').map(a => a.trim()).filter(a => a);
-        if (accounts.length > 0) {
-          mapping[username.trim()] = accounts;
-        }
-      }
-    });
-  }
-  
-  return mapping;
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,31 +16,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get credentials from environment variables
-    // Format: USERNAME1=PASSWORD1,USERNAME2=PASSWORD2,...
-    const credentials = process.env.USER_CREDENTIALS || '';
-    const credentialMap: Record<string, string> = {};
-    
-    if (credentials) {
-      credentials.split(',').forEach(cred => {
-        const [user, pass] = cred.split('=');
-        if (user && pass) {
-          credentialMap[user.trim()] = pass.trim();
-        }
-      });
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("password, mapping")
+      .eq("user_id", username)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Supabase error during login:", error);
+      return NextResponse.json(
+        { error: "Database error during login" },
+        { status: 500 }
+      );
     }
 
-    // Check if username exists and password matches
-    if (!credentialMap[username] || credentialMap[username] !== password) {
+    if (!user || user.password !== password) {
       return NextResponse.json(
         { error: "Invalid username or password" },
         { status: 401 }
       );
     }
 
-    // Get accounts for this user
-    const accountMapping = getAccountMapping();
-    const accounts = accountMapping[username] || [];
+    // Parse mapping: comma-separated account strings (e.g. "email@x.com" or "email@x.com - Healthcare")
+    const accounts = (user.mapping || "")
+      .split(",")
+      .map((s: string) => s.trim())
+      .filter(Boolean);
 
     if (accounts.length === 0) {
       return NextResponse.json(
