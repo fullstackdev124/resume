@@ -338,6 +338,10 @@ export default function Page() {
       alert('Please enter a job description.')
       return
     }
+    // Clear input fields immediately
+    setBulkInputIdentifier('')
+    setBulkInputJd('')
+    
     const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `bulk-${Date.now()}`
     const item: BulkItem = {
       id,
@@ -397,10 +401,6 @@ export default function Page() {
         
         const resume = data.resume || data
         updateBulkItem(id, { status: 'done', resumeData: resume, pdfBase64: data.pdfBase64 ?? null, pdfError: data.pdfError ?? null })
-        
-        // Only clear input fields on success
-        setBulkInputIdentifier('')
-        setBulkInputJd('')
       } catch (e) {
         // Handle network errors (API route doesn't exist in static builds)
         let errorMsg = 'Generation failed'
@@ -1199,10 +1199,19 @@ export default function Page() {
                               {b.status === 'generating' ? 'Generating' : b.status === 'done' ? 'Done' : 'Error'}
                             </span>
                           </div>
-                          {b.status === 'error' && b.error && (
-                            <div className="text-xs text-red-600 mt-1 break-words">
-                              {b.error}
-                            </div>
+                          {b.status === 'error' && (
+                            <>
+                              {b.jd && (
+                                <div className="text-xs text-gray-600 mt-1">
+                                  <strong>Job Description:</strong> {b.jd.substring(0, 100)}{b.jd.length > 100 ? '...' : ''}
+                                </div>
+                              )}
+                              {b.error && (
+                                <div className="text-xs text-red-600 mt-1 break-words">
+                                  <strong>Error:</strong> {b.error}
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       ))
