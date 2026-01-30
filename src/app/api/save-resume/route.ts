@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "JSON data is required" },
         { status: 400 }
-      );  
+      );
     }
 
     if (!supabaseUrl || !supabaseAnonKey) {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const tableName = username && username !== 'local' ? 'resume_data_bidder' : 'resume_data'
 
     // Prepare insert data
-    const insertData: any = { 
+    const insertData: any = {
       data: json,
       email: emailPrefix,
       identifier: identifier || null,

@@ -199,6 +199,7 @@ type BulkItem = {
   additionalAnswers?: Array<{ question: string; answer: string }>
   additionalQuestionsText?: string
   error?: string
+  savedToSupabase?: boolean
 }
 
 export default function Page() {
@@ -1254,7 +1255,7 @@ export default function Page() {
                       disabled={downloading}
                       onClick={async () => {
                         setDownloading(true)
-                        if (selected?.resumeData) {
+                        if (selected?.resumeData && !selected.savedToSupabase) {
                           try {
                             await saveResume(
                               selected.resumeData,
@@ -1262,6 +1263,9 @@ export default function Page() {
                               selected.jd?.trim() || null,
                               username
                             )
+                            if (selected?.id) {
+                              updateBulkItem(selected.id, { savedToSupabase: true })
+                            }
                           } catch (error) {
                             console.error('Failed to save resume to Supabase', error)
                           }
