@@ -18,6 +18,19 @@ type StatRow = { email: string; count: number }
 type OutsideStatRow = { login: string; count: number }
 type WeekByDay = { day: string; count: number }
 
+function getDefaultWeekRange(): { first: string; last: string } {
+  const now = new Date()
+  const dayOfWeek = now.getDay()
+  const mondayOffset = (dayOfWeek + 6) % 7
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - mondayOffset)
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return { first: fmt(monday), last: fmt(sunday) }
+}
+
 export default function StatisticsPage() {
   const router = useRouter()
   const [username, setUsername] = useState<string | null>(null)
@@ -31,6 +44,9 @@ export default function StatisticsPage() {
   const [outsideLoading, setOutsideLoading] = useState(false)
   const [outsideError, setOutsideError] = useState<string | null>(null)
 
+  const defaultWeek = getDefaultWeekRange()
+  const [weekFirstDay, setWeekFirstDay] = useState<string>(defaultWeek.first)
+  const [weekLastDay, setWeekLastDay] = useState<string>(defaultWeek.last)
   const [weekByEmail, setWeekByEmail] = useState<StatRow[]>([])
   const [weekByDay, setWeekByDay] = useState<WeekByDay[]>([])
   const [weekOutsideByEmail, setWeekOutsideByEmail] = useState<OutsideStatRow[]>([])
@@ -111,12 +127,14 @@ export default function StatisticsPage() {
       })
   }, [isAuthenticated])
 
-  // This week from MySQL
+  // Week range from MySQL (refetch when first/last day change)
   useEffect(() => {
     if (!isAuthenticated) return
+    if (!weekFirstDay || !weekLastDay || weekFirstDay > weekLastDay) return
     setWeekLoading(true)
     setWeekError(null)
-    fetch('/api/statistics/week')
+    const params = new URLSearchParams({ startDate: weekFirstDay, endDate: weekLastDay })
+    fetch(`/api/statistics/week?${params}`)
       .then((res) => {
         if (!res.ok) {
           if (res.status === 503) return res.json().then((j) => Promise.reject(new Error(j.error || 'MySQL not configured')))
@@ -129,11 +147,11 @@ export default function StatisticsPage() {
         setWeekByDay(data.local?.byDay ?? [])
         setWeekOutsideByEmail(data.outside?.byEmail ?? [])
         setWeekOutsideByDay(data.outside?.byDay ?? [])
-        setWeekLabel(data.weekStart && data.weekEnd ? `${data.weekStart} – ${data.weekEnd}` : 'This week')
+        setWeekLabel(data.weekStart && data.weekEnd ? `${data.weekStart} – ${data.weekEnd}` : '')
       })
       .catch((e) => setWeekError(e instanceof Error ? e.message : 'Failed to load'))
       .finally(() => setWeekLoading(false))
-  }, [isAuthenticated])
+  }, [isAuthenticated, weekFirstDay, weekLastDay])
 
   if (!isAuthenticated) {
     return (
@@ -221,7 +239,44 @@ export default function StatisticsPage() {
 
       {/* This week (MySQL) – Local & Outside */}
       <section className="mb-8">
-        <h2 className="text-lg font-medium mb-4">This week (MySQL) – {weekLabel || 'Mon–Sun'}</h2>
+        <div className="flex flex-wrap items-center gap-4 mb-4">
+          <h2 className="text-lg font-medium">Week range (MySQL)</h2>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-gray-600">First day</span>
+            <input
+              type="date"
+              value={weekFirstDay}
+              onChange={(e) => setWeekFirstDay(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <span className="text-gray-600">Last day</span>
+            <input
+              type="date"
+              value={weekLastDay}
+              onChange={(e) => setWeekLastDay(e.target.value)}
+              className="border border-gray-300 rounded px-2 py-1 text-sm"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              const { first, last } = getDefaultWeekRange()
+              setWeekFirstDay(first)
+              setWeekLastDay(last)
+            }}
+            className="text-sm text-gray-600 hover:text-gray-800 underline"
+          >
+            This week
+          </button>
+        </div>
+        {weekFirstDay && weekLastDay && weekFirstDay > weekLastDay && (
+          <p className="text-sm text-amber-600 mb-2">First day must be before or equal to last day.</p>
+        )}
+        {weekLabel && (
+          <p className="text-sm text-gray-500 mb-2">{weekLabel}</p>
+        )}
         {weekLoading && (
           <div className="text-gray-500 py-4">Loading...</div>
         )}

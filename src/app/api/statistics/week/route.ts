@@ -51,7 +51,26 @@ function toDayKey(day: unknown): string {
   return s.slice(0, 10)
 }
 
-export async function GET() {
+function parseDateRange(startDate: string | null, endDate: string | null): { start: Date; end: Date; days: string[] } | null {
+  if (!startDate || !endDate) return null
+  const re = /^\d{4}-\d{2}-\d{2}$/
+  if (!re.test(startDate) || !re.test(endDate)) return null
+  const start = new Date(startDate + 'T00:00:00')
+  const end = new Date(endDate + 'T23:59:59')
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) return null
+  const days: string[] = []
+  const d = new Date(start)
+  while (d <= end) {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    days.push(`${y}-${m}-${day}`)
+    d.setDate(d.getDate() + 1)
+  }
+  return { start, end, days }
+}
+
+export async function GET(request: Request) {
   if (!isMysqlConfigured()) {
     return NextResponse.json(
       { error: 'MySQL is not configured (MYSQL_USER, MYSQL_PASSWORD)' },
@@ -64,7 +83,11 @@ export async function GET() {
     return NextResponse.json({ error: 'MySQL pool unavailable' }, { status: 503 })
   }
 
-  const { start, end, days } = getThisWeekRange()
+  const { searchParams } = new URL(request.url)
+  const startDate = searchParams.get('startDate')
+  const endDate = searchParams.get('endDate')
+  const range = parseDateRange(startDate, endDate) ?? getThisWeekRange()
+  const { start, end, days } = range
   const startStr = formatForMysqlLocal(start)
   const endStr = formatForMysqlLocal(end)
 
@@ -127,7 +150,7 @@ export async function GET() {
 
     return NextResponse.json({
       weekStart: days[0],
-      weekEnd: days[6],
+      weekEnd: days[days.length - 1],
       local: { byEmail, byDay },
       outside: { byEmail: byEmailOutside, byDay: byDayOutside },
     })
