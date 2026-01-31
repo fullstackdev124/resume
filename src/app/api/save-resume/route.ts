@@ -24,11 +24,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-    // Extract email (part before @) from resume data
+    // Extract email (part before @) from resume data; normalize to avoid duplicate buckets (e.g. "Kayla" vs "kayla")
     let emailPrefix = ''
     if (json?.email) {
-      const emailParts = json.email.split('@')
-      emailPrefix = emailParts[0] || ''
+      const emailParts = String(json.email).split('@')
+      emailPrefix = (emailParts[0] || '').trim().toLowerCase()
     }
 
     const tableName = username && username !== 'local' ? 'resume_data_bidder' : 'resume_data'

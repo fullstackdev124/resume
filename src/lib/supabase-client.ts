@@ -131,11 +131,11 @@ export async function saveResume(
   description: string | null,
   username: string
 ) {
-  // Extract email prefix
+  // Extract email prefix; normalize (trim + lowercase) so case/whitespace don't create duplicate buckets
   let emailPrefix = ''
   if (json?.email) {
-    const emailParts = json.email.split('@')
-    emailPrefix = emailParts[0] || ''
+    const emailParts = String(json.email).split('@')
+    emailPrefix = (emailParts[0] || '').trim().toLowerCase()
   }
 
   const tableName = username && username !== 'local' ? 'resume_data_bidder' : 'resume_data'

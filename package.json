@@ -14,22 +14,24 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "*",
-    "openai": "^4.0.0",
     "@sparticuz/chromium": "^131.0.0",
     "@supabase/supabase-js": "^2.89.0",
+    "@tauri-apps/api": "^2.1.1",
     "jszip": "^3.10.1",
     "mustache": "^4.2.0",
+    "mysql2": "^3.16.2",
     "next": "16.1.1",
+    "openai": "^4.0.0",
     "pdfkit": "^0.17.2",
     "puppeteer": "^21.8.0",
     "puppeteer-core": "^21.8.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "@tauri-apps/api": "^2.1.1"
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.1.1",
     "@tailwindcss/postcss": "^4",
+    "@tauri-apps/cli": "^2.1.1",
     "@types/jszip": "^3.4.1",
     "@types/mustache": "^4.2.6",
     "@types/node": "^20",
