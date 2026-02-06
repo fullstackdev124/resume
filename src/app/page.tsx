@@ -60,8 +60,8 @@ async function saveFile(
 const allAccounts = [
   'kaylarelyease@gmail.com', 
   'jennabilgriencc@gmail.com',
-  'adriannabarrientoscc@gmail.com - Healthcare', 
-  'adriannabarrientoscc@gmail.com - FinTech', 
+  'adrianna - Healthcare@gmail.com', 
+  'adrianna - FinTech@gmail.com', 
   'adonish495@gmail.com', 
   'hollandcody54@gmail.com'
 ]
@@ -106,7 +106,7 @@ B.S. in Computer Engineering Aug 2011 – May 2015`,
   University of Illinois Urbana-Champaign
   B.S. in Computer Science | May 2019`,
 
-  'adriannabarrientoscc@gmail.com - Healthcare': `Adrianna Barrientos
+  'adrianna - Healthcare@gmail.com': `Adrianna Barrientos
 Address Corpus Christi, TX 78411
 Phone (302) 364-0974
 E-mail adriannabarrientoscc@gmail.com
@@ -124,7 +124,7 @@ EDUCATION
 Bachelor of Computer Science
 University of North Texas | 08/2012 – 05/2016 | Dallas`,
 
-'adriannabarrientoscc@gmail.com - FinTech': `Adrianna Barrientos
+'adrianna - FinTech@gmail.com': `Adrianna Barrientos
 Address Corpus Christi, TX 78411
 Phone (302) 364-0974
 E-mail adriannabarrientoscc@gmail.com
@@ -182,8 +182,8 @@ B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 const mockTemplates: Record<string,string> = {
   'kaylarelyease@gmail.com': 'standard-d',
   'jennabilgriencc@gmail.com': 'standard-c',
-  'adriannabarrientoscc@gmail.com - Healthcare': 'standard-a',
-  'adriannabarrientoscc@gmail.com - FinTech': 'standard-a',
+  'adrianna - Healthcare@gmail.com': 'standard-a',
+  'adrianna - FinTech@gmail.com': 'standard-a',
   'adonish495@gmail.com': `standard-b`,
   'hollandcody54@gmail.com': `standard-c`,
 }

@@ -21,10 +21,10 @@ const userSummaryAdditions: Record<string, string> = {
   'jennabilgriencc@gmail.com': `
   - When you are talking about years of experience, you should say 8 years of experience
   `,
-  'adriannabarrientoscc@gmail.com - Healthcare': `
+  'adrianna - Healthcare@gmail.com': `
   - When you are talking about years of experience, you should say 9 years of experience
   `,
-  'adriannabarrientoscc@gmail.com - FinTech': `
+  'adrianna - FinTech@gmail.com': `
   - When you are talking about years of experience, you should say 9 years of experience
   `,
   'adonish495@gmail.com': `
@@ -302,7 +302,7 @@ TECHNOLOGY TIMELINE RULES (STRICT)
 - No anachronistic tooling
 - Cloud, DevOps, and frontend evolution must follow industry timelines
 `,
-  'adriannabarrientoscc@gmail.com - Healthcare': `
+  'adrianna - Healthcare@gmail.com': `
  ----------------------------------------
 LUXOFT (PRIMARY ROLE – STRICTEST)
 ----------------------------------------
@@ -400,7 +400,7 @@ Rules
 
 Bullet Counts(Strict): 5-6
   `,
-  'adriannabarrientoscc@gmail.com - FinTech': `
+  'adrianna - FinTech@gmail.com': `
 ---
 LUXOFT (PRIMARY ROLE – STRICTEST)
 ---

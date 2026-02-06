@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
@@ -17,6 +17,8 @@ import {
 type StatRow = { email: string; count: number }
 type OutsideStatRow = { login: string; count: number }
 type WeekByDay = { day: string; count: number }
+type WeekTotalByDay = { day: string; local: number; outside: number }
+type WeekByDayStacked = { day: string; local: number; outside: number; total: number }
 
 function getDefaultWeekRange(): { first: string; last: string } {
   const now = new Date()
@@ -153,6 +155,16 @@ export default function StatisticsPage() {
       .finally(() => setWeekLoading(false))
   }, [isAuthenticated, weekFirstDay, weekLastDay])
 
+  // Total by day = local + outside (for stacked bar chart)
+  const weekTotalByDay = useMemo<WeekTotalByDay[]>(() => {
+    const outsideMap = new Map(weekOutsideByDay.map((d) => [d.day, d.count]))
+    return weekByDay.map((d) => ({
+      day: d.day,
+      local: d.count,
+      outside: outsideMap.get(d.day) ?? 0,
+    }))
+  }, [weekByDay, weekOutsideByDay])
+
   if (!isAuthenticated) {
     return (
       <main className="p-8 max-w-6xl mx-auto">
@@ -287,6 +299,24 @@ export default function StatisticsPage() {
         )}
         {!weekLoading && !weekError && (
           <div className="space-y-8">
+            {/* Total (by day) – stacked bar: local + outside */}
+            <div>
+              <h3 className="text-base font-medium text-gray-700 mb-2">Total (by day)</h3>
+              <p className="text-sm text-gray-500 mb-2">Local + Outside per day (stacked)</p>
+              <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weekTotalByDay} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="local" name="Local" stackId="total" fill="#3b82f6" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="outside" name="Outside" stackId="total" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
             {/* Local */}
             <div>
               <h3 className="text-base font-medium text-gray-700 mb-2">Local</h3>
