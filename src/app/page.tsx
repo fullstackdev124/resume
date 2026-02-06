@@ -63,7 +63,7 @@ const allAccounts = [
   'adrianna - Healthcare@gmail.com', 
   'adrianna - FinTech@gmail.com', 
   'adonish495@gmail.com', 
-  'hollandcody54@gmail.com'
+  'markjacksonvul@gmail.com'
 ]
 
 const mockResumes: Record<string,string> = {
@@ -160,22 +160,22 @@ EDUCATION
 University of Texas, Austin
 B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 
-  'hollandcody54@gmail.com': `Cody Holland
+  'markjacksonvul@gmail.com': `Mark Jackson
 Senior Full Stack Engineer
-Norco, CA 92860 | (650) 451–5345 | hollandcody54@gmail.com
+Bastrop, TX 78602 | (650) 451–5345 | markjacksonvul@gmail.com
 
 PROFESSIONAL EXPERIENCE
-AKASA	| San Francisco, CA
-Senior Full Stack Engineer	| Apr 2022 – Present
+Doximity	| San Francisco, CA
+Senior Full Stack Engineer	| Jan 2023 – Present
 
-Medely | Los Angeles, CA
-Feb 2018 – Mar 2022
+Teladoc Health | New York, NY
+Feb 2020 - Nov 2022
 
-Prime Health Care |	Chino, CA
-Software Engineer	| Jun 2015 – Jan 2018
+CareNow |	Coppell, TX
+Software Engineer	| Jun 2015 - Dec 2019
 
 EDUCATION
-University of California, San Diego
+University of Texas, Austin
 B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 }
 
@@ -185,7 +185,7 @@ const mockTemplates: Record<string,string> = {
   'adrianna - Healthcare@gmail.com': 'standard-a',
   'adrianna - FinTech@gmail.com': 'standard-a',
   'adonish495@gmail.com': `standard-b`,
-  'hollandcody54@gmail.com': `standard-c`,
+  'markjacksonvul@gmail.com': `standard-c`,
 }
 
 type BulkItem = {

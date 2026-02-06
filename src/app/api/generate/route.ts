@@ -30,7 +30,7 @@ const userSummaryAdditions: Record<string, string> = {
   'adonish495@gmail.com': `
   - When you are talking about years of experience, you should say 10 years of experience
   `,
-  'hollandcody54@gmail.com': `
+  'markjacksonvul@gmail.com': `
   - When you are talking about years of experience, you should say 10 years of experience
   `,
 }
@@ -667,9 +667,9 @@ Result: Cash becomes easier to manage as part of an advisor-led plan—kept acce
 Benefit with metrics: FDIC protection can extend beyond the usual $250,000 per depositor per bank by spreading funds across many banks (potentially into the millions, depending on the program structure and number of partner banks).
 Interest earned is often meaningfully higher than standard checking/savings (sometimes multiple times higher), and accounts are typically structured with no monthly fees or minimum balances.
   `,
-  'hollandcody54@gmail.com': `
+  'markjacksonvul@gmail.com': `
 ----------------------------------------
-AKASA (PRIMARY ROLE – STRICTEST)
+Doximity (PRIMARY ROLE – STRICTEST)
 ----------------------------------------
 Healthcare-focused role
 
@@ -705,19 +705,15 @@ Bullet (Strict):
  - Word count of every bullet point must be 23~28 and don't include any special characters except %.
 
 Product:
-Product Name: Insurance Eligibility Verification Automation (AKASA, Unified Automation®).
-What it’s for: Automates insurance eligibility/benefits checks at registration—an early, high-impact step in the revenue cycle.
-What it does: Runs real-time or near real-time eligibility verification via EDI 270/271 (clearinghouse or direct APIs) and confirms coverage status, effective dates, plan type, copays, deductibles, and coinsurance.
-It uses AI/NLP to interpret payer responses (271 and portal data) and maps results into the EHR/PM record.
-How it works: Appointment/registration triggers the check → pulls patient demographics + insurance → submits payer query → parses payer response → updates record automatically.
-Exception handling: Detects issues (inactive coverage, bad member ID) and auto-corrects when possible or flags staff using Expert-in-the-Loop® for complex cases.
-Integration: Connects with major EHRs (e.g., Epic, Cerner, Meditech) and can alert/hold workflows until eligibility is confirmed.
-Results (quantified): ~70%–90% manual workload reduction; 15%–30% fewer eligibility-related denials; verification time drops from ~5–10 minutes to <30 seconds per case; staff capacity shifts to higher-value work.
-Benefits (with metrics): Faster registration and cleaner claims, measured by time-to-verify (<30s), denial reduction (15%–30%), and workload reduction (70%–90%), plus improved upfront patient cost transparency.
-Security/Compliance: HIPAA-aligned, encrypted transactions, and full logging/audit trails for payer communications.
+Product Name: Doximity’s Professional Networking Platform
+Product Description: Doximity’s Professional Networking Platform is like a private LinkedIn, but just for doctors and healthcare professionals. Only verified clinicians can join, so it’s a trusted space where people actually working in medicine connect and communicate.
+
+Doctors use it to keep in touch with colleagues, message each other securely, share updates, and stay on top of medical news that’s relevant to their specialty. It also has tools like secure messaging, digital faxing, and scheduling, which makes day-to-day work easier.
+The big benefit is that it saves time and cuts down on a lot of the hassle doctors deal with — no mixing personal and work communication, no insecure texting, and no random noise like you get on normal social media.
+The result is better communication between providers, faster collaboration, and an easier way for clinicians to stay connected and informed while focusing on patient care.
 
 ----------------------------------------
-Medely
+Teladoc Health
 ----------------------------------------
 Healthcare-focused role
 
@@ -737,20 +733,16 @@ Bullet (Strict):
  - Word count of every bullet point must be 23~28 and don't include any special characters except %
 
 Product:
-Product Name: Digital Staffing Marketplace Platform (Medely).
-What it’s for: On-demand healthcare staffing that connects facilities with pre-vetted clinicians for per diem shifts and travel contracts.
-What it does: Facilities post shifts/contracts, review verified profiles, and book clinicians directly; clinicians browse jobs, manage credentials, accept shifts, and track pay.
-How it works: Clinicians onboard and upload licenses/certs → Medely verifies credentials → facilities post needs (role, time, pay, requirements) → AI matches qualified local/available clinicians.
-Real-time execution: Clinicians get instant app alerts and accept shifts in the mobile/web app, replacing slow agency back-and-forth.
-Shift completion: Attendance and completion are tracked, then both sides rate each other to improve future matching and transparency.
-Payments: Medely manages clinician payouts and facility invoicing (typically commission/per-shift fee).
-Key features: Mobile/web access, automated credential tracking, smart matching, shift manager, two-way ratings, and integrated payments.
-Results: Faster fill speed (often hours vs days), better schedule coverage, and improved visibility into performance and shift history.
-Benefits (with metrics to track): Facilities track time-to-fill, fill rate, cost per shift vs agency, cancellation/no-show rate, credential compliance rate, and average clinician rating; clinicians track hours worked, earnings per hour, time-to-payment, shift acceptance rate, and rating score.
-Compliance/Security: HIPAA-aligned data protections, credential compliance controls, and audit logs for transparency and dispute resolution.
+Product Name: Teladoc’s Virtual Care Platform
+Product Description: Teladoc’s Virtual Care Platform is basically the software that makes remote doctor visits possible. Patients use the app or website to schedule a visit, talk to a doctor by video or phone, and get treatment without going into a clinic.
+
+On the backend, the platform handles things like appointment scheduling, secure video calls, patient records, and integrations with healthcare systems. Doctors use it to review patient info, document visits, and send prescriptions, all in one place.
+The big benefit is convenience and access. Patients don’t have to wait in clinics, and providers can treat more people efficiently. For healthcare companies and employers, it helps reduce costs and improves access to care at scale.
+
+In the end, the result is faster care, better patient experience, and a more efficient healthcare system overall — especially for things like urgent care, mental health, and routine consultations.
 
 ----------------------------------------
-Prime Healthcare
+CareNow
 ----------------------------------------
 Healthcare-focused role
 
@@ -767,17 +759,12 @@ Bullet (Strict):
  - Word count of every bullet point must be 23~28 and don't include any special characters except %
 
 Product:
-Product Name: Women’s Health and Maternity Services (Prime Healthcare), a hospital-based and outpatient clinical service line offered across selected facilities.
-What it’s for: It provides comprehensive women’s care across the life cycle—from adolescence through post-menopause—with a strong focus on pregnancy, childbirth, and postpartum health.
-The service covers obstetrics, neonatal care (Level I–III NICU in select hospitals), gynecology, and select specialty services (e.g., urogynecology, limited infertility support, GYN oncology via select sites or referral networks).
-How it works: Patients enter through prenatal intake or routine GYN visits and receive coordinated screening, imaging, labs, diagnosis, treatment, and follow-up across outpatient and hospital settings.
-Pregnancy care follows a structured pathway: prenatal visits and testing → hospital admission for delivery (vaginal or C-section) with anesthesia and neonatal support → postpartum monitoring and discharge planning.
-Gynecologic care includes annual wellness exams, symptom-based evaluation, diagnostics (ultrasound, biopsies, hormone panels), minimally invasive or surgical procedures, and long-term management.
-Infrastructure/staffing: Dedicated L&D units in maternity hospitals, OB/GYNs (employed/affiliated), CNMs in select regions, NICU teams where available, 24/7 anesthesia support in laboring hospitals, and women’s imaging (mammography, pelvic ultrasound, DEXA).
-Results: Performance is tracked using internal KPIs and external benchmarks to monitor safety, outcomes, and patient experience across facilities.
-Benefits for patients (with metrics): Better continuity and maternal-newborn outcomes measured by C-section rate (Joint Commission/Leapfrog), preterm birth rate (CDC/March of Dimes), postpartum readmission rate (CMS Core Measures), maternal complication rate (AHRQ/state registries), and breastfeeding initiation rate (Baby-Friendly metrics in select hospitals).
-Benefits for the health system (with metrics): Predictable maternity volume and stronger quality/value-based performance reflected in CMS Core Measures (e.g., readmissions), Joint Commission/Leapfrog perinatal measures (e.g., C-sections), and maternal safety/complication indicators (AHRQ/state registries).
-Note on availability: Services vary by hospital based on size, local demand, licensure/NICU level, and state regulations/funding.
+Product Name: CareNow Right Time 
+Product Description: CareNow Right Time was a proprietary patient flow and wait-time management system that CareNow built to improve how urgent care clinics handled volume and throughput. Instead of patients walking in blindly and waiting, the system let them view real-time wait times, reserve a spot, and complete parts of check-in before arrival.
+
+Behind the scenes, it integrated with CareNow’s clinical systems and Epic to track provider availability, patient status, and clinic capacity. That allowed clinics to balance demand more evenly, reduce front-desk congestion, and keep providers working more efficiently.
+
+The big benefit was predictability — patients knew when to come in, clinics avoided bottlenecks, and overall wait times dropped significantly. It ended up being one of CareNow’s key differentiators because it improved both patient experience and operational efficiency at scale.
 `,
 }
 
