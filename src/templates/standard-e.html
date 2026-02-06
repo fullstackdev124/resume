@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{name}} — Resume</title>
+    <style>
+      @page {
+        size: Letter;
+        margin: 0.5in;
+      }
+      @page :first {
+        margin-top: 0.75in;
+        margin-left: 0.5in;
+        margin-right: 0.5in;
+        margin-bottom: 0.5in;
+      }
+      :root{--muted:#333;--bg:#fff}
+      body{font-family:Calibri, Arial, Helvetica, 'Segoe UI', sans-serif;color:#1a1a1a;padding:0;background:var(--bg);line-height:1.1;text-align:left;margin:0;font-size:11pt}
+      .card{max-width:100%;margin:0 auto;padding:0;position:relative}
+      header{display:flex;justify-content:center;align-items:flex-start;gap:12px;margin-bottom:6px;text-align:center}
+      h1, h2, strong{
+        text-align:inherit;
+      }
+      .header-left{max-width:62%}
+      h1{margin:0;font-size:17pt;color:#1a1a1a;font-weight:bold;line-height:1}
+      .subtitle{font-size:11pt;color:#1a1a1a;margin-top:6px;margin-bottom:6px}
+      .contact{font-size:10.5pt;color:var(--muted)}
+      .section{margin-top:12pt;margin-bottom:12pt;padding:0}
+      .section h2{font-size:12.5pt;color:#1a1a1a;margin:0 0 6pt;text-transform:uppercase;letter-spacing:1px;font-weight:bold}
+      .section h2:after{content:"";display:block;height:1px;width:100%;background:#1a1a1a;margin-top:4pt}
+      .achievements{margin-left:14px;line-height:1.1;text-align:left;font-size:11pt;color:#1a1a1a}
+      .achievements br{margin-bottom:5pt}
+      .muted{color:var(--muted);font-size:10pt}
+      .skills-content{text-align:left;font-size:11pt;color:#1a1a1a}
+      .experience-item{margin-bottom:10pt}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <header>
+        <div>
+          <h1>{{name}}</h1>
+          <div class="contact">{{email}} · {{phone}} · {{location}}</div>
+        </div>
+        <div class="contact">{{linkedin}}</div>
+      </header>
+
+      {{#summary}}
+      <section class="section">
+        <h2>Summary</h2>
+        <div style="font-size:11pt;color:#1a1a1a">{{summary}}</div>
+      </section>
+      {{/summary}}
+
+      {{#skills}}
+      <section class="section">
+        <h2>Skills</h2>
+        <div class="skills-content">
+          {{#skills.skills}}
+          <div style="margin-bottom:8px"><strong>{{key}}:</strong> <span class="muted">{{value}}</span></div>
+          {{/skills.skills}}
+        </div>
+      </section>
+      {{/skills}}
+
+      {{#experience}}
+      <section class="section">
+        <h2>Experience</h2>
+        {{#experience.experience}}
+        <div class="experience-item">
+          <div style="display:flex;justify-content:space-between"><strong>{{title}}</strong><span style="color:var(--muted);font-size:10pt">{{startDate}} - {{endDate}}</span></div>
+          <div style="color:var(--muted);font-size:10pt">{{company}}{{#location}} · {{location}}{{/location}}</div>
+          <div class="achievements">{{#achievements}}• {{.}}<br/>{{/achievements}}</div>
+        </div>
+        {{/experience.experience}}
+      </section>
+      {{/experience}}
+
+      {{#education}}
+      <section class="section">
+        <h2>Education</h2>
+        {{#education}}
+        <div class="muted" style="font-size:10pt">{{degree}}, {{school}} ({{graduationDate}})</div>
+        {{/education}}
+      </section>
+      {{/education}}
+    </div>
+  </body>
+</html>

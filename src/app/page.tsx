@@ -185,7 +185,7 @@ const mockTemplates: Record<string,string> = {
   'adrianna - Healthcare@gmail.com': 'standard-a',
   'adrianna - FinTech@gmail.com': 'standard-a',
   'adonish495@gmail.com': `standard-b`,
-  'markjacksonvul@gmail.com': `standard-c`,
+  'markjacksonvul@gmail.com': `standard-e`,
 }
 
 type BulkItem = {
