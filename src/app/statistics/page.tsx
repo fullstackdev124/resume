@@ -12,6 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from 'recharts'
 
 type StatRow = { email: string; count: number }
@@ -19,6 +20,7 @@ type OutsideStatRow = { login: string; count: number }
 type WeekByDay = { day: string; count: number }
 type WeekTotalByDay = { day: string; local: number; outside: number }
 type WeekByDayStacked = { day: string; local: number; outside: number; total: number }
+type WeekOutsideByLoginAndDayRow = { day: string; login: string; count: number }
 
 function getDefaultWeekRange(): { first: string; last: string } {
   const now = new Date()
@@ -53,6 +55,7 @@ export default function StatisticsPage() {
   const [weekByDay, setWeekByDay] = useState<WeekByDay[]>([])
   const [weekOutsideByEmail, setWeekOutsideByEmail] = useState<OutsideStatRow[]>([])
   const [weekOutsideByDay, setWeekOutsideByDay] = useState<WeekByDay[]>([])
+  const [weekOutsideByLoginAndDay, setWeekOutsideByLoginAndDay] = useState<WeekOutsideByLoginAndDayRow[]>([])
   const [weekLabel, setWeekLabel] = useState<string>('')
   const [weekLoading, setWeekLoading] = useState(false)
   const [weekError, setWeekError] = useState<string | null>(null)
@@ -149,6 +152,7 @@ export default function StatisticsPage() {
         setWeekByDay(data.local?.byDay ?? [])
         setWeekOutsideByEmail(data.outside?.byEmail ?? [])
         setWeekOutsideByDay(data.outside?.byDay ?? [])
+        setWeekOutsideByLoginAndDay(data.outside?.byLoginAndDay ?? [])
         setWeekLabel(data.weekStart && data.weekEnd ? `${data.weekStart} – ${data.weekEnd}` : '')
       })
       .catch((e) => setWeekError(e instanceof Error ? e.message : 'Failed to load'))
@@ -164,6 +168,24 @@ export default function StatisticsPage() {
       outside: outsideMap.get(d.day) ?? 0,
     }))
   }, [weekByDay, weekOutsideByDay])
+
+  // Outside by login and day: pivot to { day, [login]: count } for stacked bar chart
+  const OUTSIDE_LOGIN_COLORS = ['#ec4899', '#f59e0b', '#10b981', '#6366f1', '#8b5cf6', '#06b6d4', '#84cc16', '#f43f5e']
+  const weekOutsideByLoginAndDayChart = useMemo(() => {
+    const days = weekByDay.map((d) => d.day)
+    const logins = [...new Set(weekOutsideByLoginAndDay.map((r) => r.login))]
+    return days.map((day) => {
+      const row: Record<string, string | number> = { day }
+      for (const login of logins) {
+        row[login] = weekOutsideByLoginAndDay.find((r) => r.day === day && r.login === login)?.count ?? 0
+      }
+      return row
+    })
+  }, [weekByDay, weekOutsideByLoginAndDay])
+  const weekOutsideLogins = useMemo(
+    () => [...new Set(weekOutsideByLoginAndDay.map((r) => r.login))],
+    [weekOutsideByLoginAndDay]
+  )
 
   if (!isAuthenticated) {
     return (
@@ -359,7 +381,7 @@ export default function StatisticsPage() {
             {/* Outside */}
             <div>
               <h3 className="text-base font-medium text-gray-700 mb-2">Outside</h3>
-              {(weekOutsideByEmail.length > 0 || weekOutsideByDay.some((d) => d.count > 0)) ? (
+              {(weekOutsideByEmail.length > 0 || weekOutsideByDay.some((d) => d.count > 0) || weekOutsideByLoginAndDay.length > 0) ? (
                 <div className="space-y-6">
                   <div>
                     <h4 className="text-sm text-gray-600 mb-1">Record count by login</h4>
@@ -389,6 +411,53 @@ export default function StatisticsPage() {
                       </ResponsiveContainer>
                     </div>
                   </div>
+                  {weekOutsideLogins.length > 0 && (
+                    <div>
+                      <h4 className="text-sm text-gray-600 mb-1">Record count by login and day</h4>
+                      <p className="text-xs text-gray-500 mb-1">Stacked bar: each segment is one login per day</p>
+                      <div className="h-72 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={weekOutsideByLoginAndDayChart} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                            <YAxis allowDecimals={false} />
+                            <Tooltip
+                              content={({ active, payload, label }) => {
+                                if (!active || !payload?.length) return null
+                                const total = payload.reduce((sum, p) => sum + (Number(p.value) || 0), 0)
+                                return (
+                                  <div className="bg-white border border-gray-200 rounded shadow-lg px-3 py-2 text-sm">
+                                    <div className="font-medium text-gray-700 mb-1">{label}</div>
+                                    {payload.map((p) => (
+                                      <div key={p.name} className="flex gap-2" style={{ color: p.color }}>
+                                        <span>{p.name}:</span>
+                                        <span>{p.value}</span>
+                                      </div>
+                                    ))}
+                                    <div className="flex gap-2 font-medium mt-1 pt-1 border-t border-gray-100">
+                                      <span>Total count:</span>
+                                      <span>{total}</span>
+                                    </div>
+                                  </div>
+                                )
+                              }}
+                            />
+                            <Legend />
+                            {weekOutsideLogins.map((login, i) => (
+                              <Bar
+                                key={login}
+                                dataKey={login}
+                                name={login}
+                                stackId="byLogin"
+                                fill={OUTSIDE_LOGIN_COLORS[i % OUTSIDE_LOGIN_COLORS.length]}
+                                radius={i === weekOutsideLogins.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                              />
+                            ))}
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="py-4 text-gray-500">No records this week</div>

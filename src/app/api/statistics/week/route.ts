@@ -136,6 +136,15 @@ export async function GET(request: Request) {
       [startStr, endStr]
     )
 
+    // Outside: resume_data_bidder – count by login AND day (this week)
+    const [byLoginAndDayOutsideRows] = await pool.execute(
+      `SELECT DATE(created_at) as day, COALESCE(login, email) as login, COUNT(*) as count 
+       FROM resume_data_bidder 
+       WHERE created_at >= ? AND created_at <= ? 
+       GROUP BY DATE(created_at), COALESCE(login, email) ORDER BY day, count DESC`,
+      [startStr, endStr]
+    )
+
     const byEmailOutside = ((byEmailOutsideRows as RowBidder[]) || []).map((row: RowBidder) => ({
       login: row.email ?? '(no login)',
       count: Number(row.count),
@@ -148,11 +157,18 @@ export async function GET(request: Request) {
     }
     const byDayOutside = days.map((day) => ({ day, count: dayMapOutside.get(day) ?? 0 }))
 
+    type RowLoginDay = RowDataPacket & { day?: string | null; login?: string | null; count?: number }
+    const byLoginAndDayOutside = ((byLoginAndDayOutsideRows as RowLoginDay[]) || []).map((row: RowLoginDay) => ({
+      day: toDayKey(row.day),
+      login: row.login ?? '(no login)',
+      count: Number(row.count),
+    }))
+
     return NextResponse.json({
       weekStart: days[0],
       weekEnd: days[days.length - 1],
       local: { byEmail, byDay },
-      outside: { byEmail: byEmailOutside, byDay: byDayOutside },
+      outside: { byEmail: byEmailOutside, byDay: byDayOutside, byLoginAndDay: byLoginAndDayOutside },
     })
   } catch (e) {
     console.error('MySQL statistics/week error:', e)

@@ -642,12 +642,20 @@ export default function Page() {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-end gap-4 mb-2">
         {username === 'local' && serverEnv === '0' && (
-          <Link
-            href="/statistics"
-            className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hover:underline"
-          >
-            Statistics
-          </Link>
+          <>
+            <Link
+              href="/analytics"
+              className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hover:underline"
+            >
+              Analytics
+            </Link>
+            <Link
+              href="/statistics"
+              className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer hover:underline"
+            >
+              Statistics
+            </Link>
+          </>
         )}
         <a
           onClick={handleLogout}
