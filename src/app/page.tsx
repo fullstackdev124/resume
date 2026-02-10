@@ -203,6 +203,23 @@ type BulkItem = {
   savedToSupabase?: boolean
 }
 
+function getFirstNameForFilename(resumeData: any, fallback = 'Resume'): string {
+  if (!resumeData) return fallback
+  let first = ''
+  const name =
+    typeof resumeData === 'object' && resumeData != null && resumeData.name != null
+      ? String(resumeData.name).trim()
+      : null
+  if (name) {
+    first = name.split(/\s+/)[0] || ''
+  } else if (typeof resumeData === 'string') {
+    const firstLine = resumeData.trim().split(/\n/)[0] || ''
+    first = firstLine.trim().split(/\s+/)[0] || ''
+  }
+  first = first.replace(/[/\\:*?"<>|]/g, '').trim()
+  return first || fallback
+}
+
 export default function Page() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -514,7 +531,8 @@ export default function Page() {
       if (data.error) {
         setJsonError(data.error)
       } else if (data.pdfBase64) {
-        const filename = 'resume.pdf'
+        const firstName = getFirstNameForFilename(validation.data)
+        const filename = `${firstName}-Resume.pdf`
         await saveFile(filename, data.pdfBase64, 'base64', 'application/pdf')
       }
     } catch (e) {
@@ -1250,7 +1268,8 @@ export default function Page() {
                             console.error('Failed to save resume to Supabase', error)
                           }
                         }
-                        const filename = 'resume.pdf'
+                        const firstName = getFirstNameForFilename(selected?.resumeData)
+                        const filename = `${firstName}-Resume.pdf`
                         await saveFile(filename, selected!.pdfBase64!, 'base64', 'application/pdf')
                         setDownloading(false)
                       }}
@@ -1296,7 +1315,8 @@ export default function Page() {
                               const blob = await res.blob()
                               const ab = await blob.arrayBuffer()
                               const b64 = arrayBufferToBase64(ab)
-                              const filename = 'cover-letter.docx'
+                              const firstName = getFirstNameForFilename(selected?.resumeData)
+                              const filename = `${firstName}-Cover-Letter.docx`
                               await saveFile(filename, b64, 'base64', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                             } catch (err) {
                               console.error('Failed to download .docx:', err)
@@ -1310,7 +1330,8 @@ export default function Page() {
                         </button>
                         <button
                           onClick={async () => {
-                            const filename = 'cover-letter.txt'
+                            const firstName = getFirstNameForFilename(selected?.resumeData)
+                            const filename = `${firstName}-Cover-Letter.txt`
                             await saveFile(filename, selected!.coverLetter!, 'utf8')
                           }}
                           className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
