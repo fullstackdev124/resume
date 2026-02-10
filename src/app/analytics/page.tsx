@@ -25,6 +25,7 @@ type ResumeHistoryItem = {
   created_at: string | null
   identifier: string | null
   description: string | null
+  scheduled?: boolean
 }
 
 export default function AnalyticsPage() {
@@ -38,6 +39,7 @@ export default function AnalyticsPage() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [analyzeStartDate, setAnalyzeStartDate] = useState(() => getDefaultAnalyzeRange().start)
   const [analyzeEndDate, setAnalyzeEndDate] = useState(() => getDefaultAnalyzeRange().end)
+  const [removingId, setRemovingId] = useState<string | null>(null)
   const [ratesData, setRatesData] = useState<{
     localByEmail: { name: string; value: number }[]
     otherByLogin: { name: string; value: number }[]
@@ -193,6 +195,7 @@ export default function AnalyticsPage() {
         throw new Error(data.error || `HTTP ${res.status}`)
       }
       setGotInterviewFeedback(true)
+      if (id) setItems((prev) => prev.map((it) => (it.id === id ? { ...it, scheduled: true } : it)))
       setTimeout(() => setGotInterviewFeedback(false), 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add')
@@ -202,6 +205,23 @@ export default function AnalyticsPage() {
   }
   const selectedItem = selectedIndex !== null ? items[selectedIndex] : null
   const canGotInterview = selectedItem && (selectedItem.id ?? '').trim() !== '' && (selectedItem.login ?? '').trim() !== '' && (selectedItem.email ?? '').trim() !== '' && toAtDate(selectedItem.created_at) !== null
+
+  const handleRemoveScheduled = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    if (!id) return
+    setRemovingId(id)
+    setError(null)
+    try {
+      const res = await fetch(`/api/analytics/scheduled?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
+      setItems((prev) => prev.map((it) => (it.id === id ? { ...it, scheduled: false } : it)))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove')
+    } finally {
+      setRemovingId(null)
+    }
+  }
 
   const [copyFeedback, setCopyFeedback] = useState<'description' | 'data' | null>(null)
   const copyToClipboard = async (text: string, kind: 'description' | 'data') => {
@@ -291,11 +311,11 @@ export default function AnalyticsPage() {
               ) : (
                 <ul className="divide-y divide-gray-200">
                   {items.map((item, index) => (
-                    <li key={index}>
+                    <li key={index} className="flex items-stretch">
                       <button
                         type="button"
                         onClick={() => setSelectedIndex(index)}
-                        className={`w-full text-left px-3 py-2.5 hover:bg-gray-50 text-sm ${
+                        className={`flex-1 min-w-0 text-left px-3 py-2.5 hover:bg-gray-50 text-sm ${
                           selectedIndex === index ? 'bg-indigo-50 border-l-2 border-indigo-600' : ''
                         }`}
                       >
@@ -312,6 +332,18 @@ export default function AnalyticsPage() {
                           {formatDateOnly(item.created_at)}
                         </div>
                       </button>
+                      {item.id && item.scheduled && (
+                        <div className="flex items-center shrink-0 pr-2 border-l border-gray-100">
+                          <button
+                            type="button"
+                            onClick={(e) => handleRemoveScheduled(e, item.id!)}
+                            disabled={removingId === item.id}
+                            className="text-xs px-2 py-1.5 rounded border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50 whitespace-nowrap"
+                          >
+                            {removingId === item.id ? '...' : 'Remove'}
+                          </button>
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -10,6 +10,7 @@ type ResumeHistoryRow = RowDataPacket & {
   created_at?: string | Date | null
   identifier?: string | null
   description?: string | null
+  scheduled_id?: string | number | null
 }
 
 export async function GET(request: Request) {
@@ -32,19 +33,23 @@ export async function GET(request: Request) {
     let rows: ResumeHistoryRow[]
     if (q === '') {
       const [result] = await pool.execute(
-        `SELECT id, login, email, data, created_at, identifier, description 
-         FROM resume_history 
-         ORDER BY created_at DESC 
+        `SELECT rh.id, rh.login, rh.email, rh.data, rh.created_at, rh.identifier, rh.description,
+                sch.id AS scheduled_id
+         FROM resume_history rh
+         LEFT JOIN interview_scheduled sch ON sch.id = rh.id
+         ORDER BY rh.created_at DESC
          LIMIT 10`
       )
       rows = result as ResumeHistoryRow[]
     } else {
       const likeArg = `%${q}%`
       const [result] = await pool.execute(
-        `SELECT id, login, email, data, created_at, identifier, description 
-         FROM resume_history 
-         WHERE identifier LIKE ? OR description LIKE ? 
-         ORDER BY created_at DESC 
+        `SELECT rh.id, rh.login, rh.email, rh.data, rh.created_at, rh.identifier, rh.description,
+                sch.id AS scheduled_id
+         FROM resume_history rh
+         LEFT JOIN interview_scheduled sch ON sch.id = rh.id
+         WHERE rh.identifier LIKE ? OR rh.description LIKE ?
+         ORDER BY rh.created_at DESC
          LIMIT 10`,
         [likeArg, likeArg]
       )
@@ -68,6 +73,7 @@ export async function GET(request: Request) {
       created_at: toDateString(row.created_at),
       identifier: row.identifier ?? null,
       description: row.description ?? null,
+      scheduled: row.scheduled_id != null,
     }))
 
     return NextResponse.json({ items: list })
