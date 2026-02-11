@@ -255,6 +255,20 @@
         </div>
         {{/summary}}
 
+        {{#skills}}
+        <div class="section">
+          <h2>Skills</h2>
+          <div class="skill-row">
+            {{#skills.skills}}
+            <div class="skill-item">
+              <div class="skill-category">{{key}}</div>
+              <div class="skill-value">{{value}}</div>
+            </div>
+            {{/skills.skills}}
+          </div>
+        </div>
+        {{/skills}}
+
         {{#experience}}
         <div class="section experience">
           <h2>Experience</h2>
@@ -279,20 +293,6 @@
           {{/experience.experience}}
         </div>
         {{/experience}}
-
-        {{#skills}}
-        <div class="section">
-          <h2>Skills</h2>
-          <div class="skill-row">
-            {{#skills.skills}}
-            <div class="skill-item">
-              <div class="skill-category">{{key}}</div>
-              <div class="skill-value">{{value}}</div>
-            </div>
-            {{/skills.skills}}
-          </div>
-        </div>
-        {{/skills}}
 
         {{#education}}
         <div class="section">
