@@ -18,7 +18,7 @@ const userSummaryAdditions: Record<string, string> = {
   'kaylarelyease@gmail.com': `
   - When you are talking about years of experience, you should say 10 years of experience
   `,
-  'jennabilgriencc@gmail.com': `
+  'jennabilgriense@gmail.com': `
   - When you are talking about years of experience, you should say 8 years of experience
   `,
   'adrianna - Healthcare@gmail.com': `
@@ -125,182 +125,92 @@ Rules
 Bullet Counts(Strict): 5-6
 --------------------------------------------  
   `,
-  'jennabilgriencc@gmail.com': `
+  'jennabilgriense@gmail.com': `
 ----------------------------------------
-The Zebra (PRIMARY ROLE – STRICTEST)
+ScienceSoft(PRIMARY ROLE – STRICTEST)
 ----------------------------------------
-
 Mandatory Inclusions
-
-- 100% coverage of:
+- 100% of:
   - JD mandatory requirements
-  - JD optional / preferred / bonus / nice-to-have requirements
+  - JD optional / preferred / bonus/ nice-to-have requirements
+- Remember. Make it realistic for ScienceSoft company
+- DevOps:
+  - CI/CD pipelines
+  - Docker
+  - Kubernetes
+  - Monitoring / observability
+- Testing:
+  - Unit, integration, and E2E testing tools
+- Agile:
+  - Jira, Kanban / Scrum
+  - Version control (Git, Bitbucket, etc.)
+- Cross-functional coordination:
+  - Product
+  - QA
+  - Compliance
+  - Clinical or healthcare SMEs
+- Mentorship or technical leadership
 
-- Must use Insurance / InsurTech industry tone and The Zebra–specific business context:
-  - Consumer-facing insurance marketplace
-  - Carrier integrations and quote aggregation
-  - Pricing, rating, underwriting data pipelines
-  - High-volume, real-time quote workflows
-  - Data accuracy, latency, and reliability as business-critical metrics
-
-- Make all experience realistic and aligned to The Zebra’s product model:
-  - Insurance comparison and quoting platforms
-  - Partner carrier APIs and data normalization
-  - Policy lifecycle concepts (quote → bind → policy → renewal)
-  - Marketplace and funnel optimization
-
-Explicit Technical & Domain Inclusions
-
-- Insurance data & compliance:
-  - PII protection, SOC 2, GDPR/CCPA awareness
-  - Secure handling of consumer identity and driving history
-  - Audit logging and traceability for pricing and quote decisions
-  - Role-based access control (RBAC) and least-privilege design
-  - Encryption in transit and at rest
-
-- Insurance platform concepts:
-  - Rating and pricing engines
-  - Quote orchestration services
-  - Carrier integrations and third-party data providers
-  - Event-driven pipelines for quote updates and eligibility changes
-  - Feature flags and experimentation (A/B testing) in funnels
-
-Engineering & Architecture
-
-- Backend and systems:
-  - Distributed services, REST and GraphQL APIs
-  - Message queues / event streaming (e.g., Kafka, Pub/Sub, SQS)
-  - Data modeling for pricing, risk factors, and carrier schemas
-  - Caching strategies for quote performance and cost control
-
-- Frontend and product engineering (if applicable to JD):
-  - Conversion-focused UI flows
-  - Performance optimization for high-traffic pages
-  - Analytics instrumentation for funnel tracking
-
-DevOps & Reliability
-
-- CI/CD:
-  - Automated build, test, and deployment pipelines
-  - Blue/green or canary deployments
-
-- Infrastructure:
-  - Docker, Kubernetes
-  - Cloud-native services (AWS/GCP/Azure as per JD)
-
-- Observability:
-  - Logging, metrics, tracing, alerting
-  - SLA/SLO driven monitoring for quote latency and uptime
-
-Testing & Quality
-
-- Automated testing:
-  - Unit, integration, contract, and E2E testing
-  - API validation against carrier schemas
-  - Regression testing for pricing and rating logic
-
-- Test data strategies:
-  - Synthetic and masked production-like insurance datasets
-
-Agile & Delivery
-
-- Agile practices:
-  - Scrum and/or Kanban
-  - Jira for backlog, sprint planning, and incident tracking
-
-- Version control & collaboration:
-  - Git with PR-based workflows
-  - Code reviews and trunk-based or GitFlow strategies
-
-Cross-Functional Collaboration
-
-- Must show collaboration with:
-  - Product managers (conversion, pricing, and growth initiatives)
-  - QA and test automation engineers
-  - Data teams (analytics, experimentation, BI)
-  - Compliance and legal stakeholders
-  - Carrier partnership and integration teams
-
-Leadership & Mentorship
-
-- Demonstrate:
-  - Technical leadership in system design and reviews
-  - Mentorship of junior and mid-level engineers
-  - Ownership of critical services and production stability
-  - Participation in architectural and scaling decisions
-
-Output Requirements
-
-- Resume must:
-  - Align tightly with The Zebra’s marketplace and data-driven business model
-  - Reflect senior-level ownership of production systems
-  - Emphasize scalability, reliability, and compliance
-  - Avoid healthcare terminology entirely
-  - Use insurance and marketplace vocabulary consistently
-
-Divide contents into 2 sub sections(senior software engineer, software engineer section)
- - first subsection must sound like senior including mentoring experience
- - second subsection must sound like more like mid-level engineer
-Bullet Counts per section(8,5)
+Bullet Counts(Strict): 8-10
 
 ----------------------------------------
-Intelligent Medical Objects
+ShipBob
 ----------------------------------------
 Rules
--Preserve a clear internship / learning-focused tone (assist, support, contribute, learn)
--Align tightly with IMO job description: clinical terminology, healthcare data, APIs, cloud services, data quality
--Reflect technologies realistic for IMO and the date range: Java, Spring Boot, REST APIs, AWS, SQL, CI/CD, testing tools
--Maintain a strong healthcare and clinical data context (EHR workflows, terminology standards, patient safety, data accuracy)
--Make bullets realistic for an intern working on a production healthcare platform
--Emphasize code quality, testing, and data validation
--Avoid senior-level ownership language (no “led”, “owned”, “architected”)
+- Industry: Ecommerce Fulfillment + Logistics SaaS
+- Preserve seniority tone
+- Align tightly with JD (include mainly the parts ScienceSoft did not include)
+- Reflect technologies appropriate to the date range
+- Remember. Include Retail and Ecommerce tone
+- Make it realistic for ShipBob company
+- Include:
+  - Cross-functional collaboration
+  - Stakeholder interaction
 
--Include:
- -Cross-functional collaboration (engineering, product, QA, clinical/content teams)
- -Stakeholder interaction (clinical specialists, product managers, support teams)
-
--Output Requirements
- -Resume-ready, action-oriented, healthcare-appropriate language
- -Each line should include either:
-  -a technology + healthcare workflow, or
-  -collaboration + clinical impact
- - 4 or 5 bullet points
-
-Goal
-Produce resume lines that sound credible for an IMO intern supporting clinical terminology and healthcare integration services.
+Bullet Counts(Strict): 6-8
 
 ----------------------------------------
-UIUC College of Engineering
+Snipcart
 ----------------------------------------
-
 Rules
--Preserve the role responsibility of Engineering Learning Assistant, but focus on engineering and technical support, not teaching or grading
--Write bullets in the same direct, hands-on engineering tone as the examples (debugging, reviewing code, building scripts, supporting labs)
--Align with the job description: programming support, problem solving, systems thinking, and software fundamentals
--Reflect technologies appropriate to the academic date range: Python, JavaScript, Java/C++, Git, Linux, SQL, APIs, basic system design
--Emphasize practical engineering tasks: debugging, code review, scripting, tooling, and workflow explanations
--Avoid instructional or classroom language (no “lectured,” “taught,” “graded,” “lesson plans”)
--Keep language resume-ready and technically credible
+- Industry Checkout & Payments Platform
+- Preserve software engineer level just promoted from internship
+- Align with JD (include the parts ScienceSoft and ShipBob did not include)
+- Reflect technologies appropriate to the date range
+- Remember. Include retail & ecommerce tone
+- Make it realistic for Snipcart company
 
-Output Requirements
+Bullet Counts(Strict): 4-5
 
--Bullet count: 3–4 bullets ONLY (strict)
--Each bullet should describe a concrete engineering activity or technical support task
--Match tone and structure of:
- -“Assisted students with debugging JavaScript/Python applications and understanding data structures”
- -“Reviewed and provided feedback on code quality, logic, and performance”
- -“Built sample implementations and scripts to demonstrate algorithms and workflows”
- -“Supported labs covering APIs, databases, and basic system design concepts”
+----------------------------------------
+Snipcart
+----------------------------------------
+Rules
+- Industry Checkout & Payments Platform
+- Preserve Internship level
+- Align with JD (include the parts ScienceSoft and ShipBob did not include)
+- Reflect technologies appropriate to the date range
+- Remember. Include retail & ecommerce tone
+- Make it realistic for Snipcart company
 
-Goal
-Produce resume bullets that reflect real engineering support experience gained through the ELA role, emphasizing hands-on software development skills rather than teaching duties.
+Bullet Counts(Strict): 3-4
 
+----------------------------------------
+Various Clients
+----------------------------------------
+Rules
+- Preserve freelancer tone
+- Align with JD (include the parts ScienceSoft and ShipBob, Snipcart did not include)
+- Reflect technologies appropriate to the date range
+- Remember. Show various experience through multiple industries as a freelancer
+
+Bullet Counts(Strict): 3-4
 ----------------------------------------
 TECHNOLOGY TIMELINE RULES (STRICT)
 ----------------------------------------
 - Technologies must be realistic for the role’s date range
 - No anachronistic tooling
-- Cloud, DevOps, and frontend evolution must follow industry timelines
+- Cloud, DevOps, and frontend evolution must follow industry timelines 
 `,
   'adrianna - Healthcare@gmail.com': `
  ----------------------------------------

@@ -59,7 +59,7 @@ async function saveFile(
 
 const allAccounts = [
   'kaylarelyease@gmail.com', 
-  'jennabilgriencc@gmail.com',
+  'jennabilgriense@gmail.com',
   'adrianna - Healthcare@gmail.com', 
   'adrianna - FinTech@gmail.com', 
   'adonish495@gmail.com', 
@@ -85,22 +85,25 @@ EDUCATION
 New York University, New York
 B.S. in Computer Engineering Aug 2011 – May 2015`,
 
-  'jennabilgriencc@gmail.com': `Jenna Bilgrien
+  'jennabilgriense@gmail.com': `Jenna Bilgrien
   Senior Software Engineer
-  Chicago, IL | (805) 395-6650 | jennabilgriencc@gmail.com
+  Chicago, IL | (805) 395-6650 | jennabilgriense@gmail.com
   
   PROFESSIONAL EXPERIENCE
-  The Zebra | Jul 2021 - Present 
-  Senior Software Engineer | Austin, TX
+  ScienceSoft | Jan 2024 - Present 
+  McKinney, TX
 
-  The Zebra | Jul 2019 - Jul 2021 
-  Software Engineer | Austin, TX
+  ShipBob | Jun 2021 - Dec 2023 
+  Chicago, IL
 
-  Intelligent Medical Objects | May 2018- Dec 2018
-  Software Engineering Intern | Urbana-Champaign Area
+  Snipcart | Sep 2019- Apr 2021
+  Software Engineer | Colorado Springs, CO
 
-  UIUC College of Engineering | Jul 2017 - Dec 2018
-  Engineering Learning Assistant | Urbana-Champaign Area
+  Snipcart | Jul 2018 - Aug 2019
+  Software Engineer Intern | Colorado Springs, CO
+
+  Various Clients | Jul 2017 - Jun 2018
+  Freelancer
 
   EDUCATION
   University of Illinois Urbana-Champaign
@@ -181,7 +184,7 @@ B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 
 const mockTemplates: Record<string,string> = {
   'kaylarelyease@gmail.com': 'standard-d',
-  'jennabilgriencc@gmail.com': 'standard-c',
+  'jennabilgriense@gmail.com': 'standard-c',
   'adrianna - Healthcare@gmail.com': 'standard-a',
   'adrianna - FinTech@gmail.com': 'standard-a',
   'adonish495@gmail.com': `standard-b`,
