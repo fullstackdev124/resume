@@ -126,92 +126,96 @@ Bullet Counts(Strict): 5-6
 --------------------------------------------  
   `,
   'jjennabilgrien@gmail.com': `
-----------------------------------------
-ScienceSoft(PRIMARY ROLE – STRICTEST)
-----------------------------------------
-Mandatory Inclusions
-- 100% of:
-  - JD mandatory requirements
-  - JD optional / preferred / bonus/ nice-to-have requirements
-- Remember. Make it realistic for ScienceSoft company
-- DevOps:
-  - CI/CD pipelines
-  - Docker
-  - Kubernetes
-  - Monitoring / observability
-- Testing:
-  - Unit, integration, and E2E testing tools
-- Agile:
-  - Jira, Kanban / Scrum
-  - Version control (Git, Bitbucket, etc.)
-- Cross-functional coordination:
-  - Product
-  - QA
-  - Compliance
-  - Clinical or healthcare SMEs
-- Mentorship or technical leadership
-
-Bullet Counts(Strict): 8-10
-
+ScienceSoft — PRIMARY ROLE (STRICTEST)
+Industry Context to Embed:
+👉 Ecommerce + Fintech + Healthcare Software Services
+Tone Requirements
+•	Write as a senior engineer inside a global IT services company delivering regulated, enterprise systems.
+•	Every bullet must reflect:
+	o	Client-facing delivery mindset
+	o	Compliance-aware engineering
+	o	Multi-domain exposure (ecommerce + healthcare + fintech)
+Mandatory Inclusions – 100% Required
+•	All JD mandatory + optional + nice-to-have requirements
+•	Domain language:
+	o	Healthcare: HL7, FHIR, HIPAA, PHI/PII, audit logging
+	o	Fintech: payments, PCI, transactions, reconciliation
+	o	Ecommerce: order lifecycle, integrations, marketplaces
+•	DevOps:
+	o	CI/CD pipelines, Docker, Kubernetes
+	o	Monitoring & observability (Prometheus, Grafana, APM)
+•	Testing:
+	o	Unit, integration, E2E, contract testing
+•	Agile & Delivery:
+	o	Jira, Scrum/Kanban, Git/Bitbucket
+•	Collaboration:
+	o	Product, QA, Compliance, Clinical SMEs
+•	Mentorship / tech leadership
+Style Guardrails
+•	Must sound like:
+“Delivered enterprise solutions for ScienceSoft clients in healthcare, fintech, and ecommerce domains.”
+•	Avoid generic verbs → use: implemented, hardened, integrated, validated, governed.
+Bullet Count: 8–10 (STRICT)
+________________________________________
 ----------------------------------------
 ShipBob
+Industry Context to Embed:
+👉 Ecommerce Fulfillment + Logistics SaaS + Retail Operations
+Tone Requirements
+•	Voice of a product engineer inside a fulfillment platform
+•	Emphasize:
+	o	Orders, inventory, warehouses, shipping labels
+	o	Merchant experience & retailer integrations
+	o	Scale, throughput, peak season reliability
+Must Include
+•	Cross-functional collaboration with:
+	o	Operations, merchants, customer success
+	o	Product & logistics stakeholders
+•	Realistic tech for period:
+	o	Microservices, event streams, APIs
+	o	Warehouse workflows, SLA monitoring
+Style Examples to Enforce
+•	“Built services supporting merchant order routing across 3PL warehouses.”
+•	“Improved pick/pack latency during peak retail season.”
+Bullet Count: 6–8 (STRICT)
+________________________________________
 ----------------------------------------
-Rules
-- Industry: Ecommerce Fulfillment + Logistics SaaS
-- Preserve seniority tone
-- Align tightly with JD (include mainly the parts ScienceSoft did not include)
-- Reflect technologies appropriate to the date range
-- Remember. Include Retail and Ecommerce tone
-- Make it realistic for ShipBob company
-- Include:
-  - Cross-functional collaboration
-  - Stakeholder interaction
-
-Bullet Counts(Strict): 6-8
-
+Snipcart — Software Engineer (Post-Intern)
+Industry Context to Embed:
+👉 Checkout + Payments Platform for Online Retail
+Tone Requirements
+•	Early-career engineer in a payments/checkout product
+•	Focus on:
+	o	Cart flows, conversions, storefront SDKs
+	o	Payment gateways, subscriptions, fraud
+Must Reflect
+•	Frontend + API integration work
+•	Merchant-facing mindset
+•	Real ecommerce vocabulary
+Bullet Count: 5–6 (STRICT)
+________________________________________
 ----------------------------------------
-Snipcart
+Snipcart — Internship
+Industry Context to Embed:
+👉 Ecommerce Checkout & Merchant Tools
+Tone Requirements
+•	Learning-focused internship voice
+•	Emphasize:
+	o	Feature support
+	o	bug fixes in cart/checkout
+	o	QA and storefront testing
+Bullet Count: 5–6 (STRICT)
+________________________________________
 ----------------------------------------
-Rules
-- Industry Checkout & Payments Platform
-- Preserve software engineer level just promoted from internship
-- Align with JD (include the parts ScienceSoft and ShipBob did not include)
-- Reflect technologies appropriate to the date range
-- Remember. Include retail & ecommerce tone
-- Make it realistic for Snipcart company
-
-Bullet Counts(Strict): 4-5
-
-----------------------------------------
-Snipcart
-----------------------------------------
-Rules
-- Industry Checkout & Payments Platform
-- Preserve Internship level
-- Align with JD (include the parts ScienceSoft and ShipBob did not include)
-- Reflect technologies appropriate to the date range
-- Remember. Include retail & ecommerce tone
-- Make it realistic for Snipcart company
-
-Bullet Counts(Strict): 3-4
-
-----------------------------------------
-Various Clients
-----------------------------------------
-Rules
-- Preserve freelancer tone
-- Align with JD (include the parts ScienceSoft and ShipBob, Snipcart did not include)
-- Reflect technologies appropriate to the date range
-- Remember. Show various experience through multiple industries as a freelancer
-
-Bullet Counts(Strict): 3-4
-----------------------------------------
-TECHNOLOGY TIMELINE RULES (STRICT)
-----------------------------------------
-- Technologies must be realistic for the role’s date range
-- No anachronistic tooling
-- Cloud, DevOps, and frontend evolution must follow industry timelines 
-`,
+Various Clients — Freelancer
+Industry Context to Embed:
+👉 Multiple industries (retail, SMB ecommerce, fintech tools, marketing sites)
+Tone Requirements
+•	Independent contractor voice
+•	Show breadth across domains
+•	Outcome-driven, short engagements
+Bullet Count: 4–5 (STRICT)
+  `,
   'adrianna - Healthcare@gmail.com': `
  ----------------------------------------
 LUXOFT (PRIMARY ROLE – STRICTEST)
