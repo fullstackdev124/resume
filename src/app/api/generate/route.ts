@@ -18,7 +18,7 @@ const userSummaryAdditions: Record<string, string> = {
   'kaylarelyease@gmail.com': `
   - When you are talking about years of experience, you should say 10 years of experience
   `,
-  'jennabilgriense@gmail.com': `
+  'jjennabilgrien@gmail.com': `
   - When you are talking about years of experience, you should say 8 years of experience
   `,
   'adrianna - Healthcare@gmail.com': `
@@ -125,7 +125,7 @@ Rules
 Bullet Counts(Strict): 5-6
 --------------------------------------------  
   `,
-  'jennabilgriense@gmail.com': `
+  'jjennabilgrien@gmail.com': `
 ----------------------------------------
 ScienceSoft(PRIMARY ROLE – STRICTEST)
 ----------------------------------------

@@ -59,7 +59,7 @@ async function saveFile(
 
 const allAccounts = [
   'kaylarelyease@gmail.com', 
-  'jennabilgriense@gmail.com',
+  'jjennabilgrien@gmail.com',
   'adrianna - Healthcare@gmail.com', 
   'adrianna - FinTech@gmail.com', 
   'adonish495@gmail.com', 
@@ -85,9 +85,9 @@ EDUCATION
 New York University, New York
 B.S. in Computer Engineering Aug 2011 – May 2015`,
 
-  'jennabilgriense@gmail.com': `Jenna Bilgrien
+  'jjennabilgrien@gmail.com': `Jenna Bilgrien
   Senior Software Engineer
-  Chicago, IL | (805) 395-6650 | jennabilgriense@gmail.com
+  Chicago, IL | (805) 395-6650 | jjennabilgrien@gmail.com
   
   PROFESSIONAL EXPERIENCE
   ScienceSoft | Jan 2024 - Present 
@@ -184,7 +184,7 @@ B.S. in Computer Science | May 2015 | Cumulative GPA: 3.7`,
 
 const mockTemplates: Record<string,string> = {
   'kaylarelyease@gmail.com': 'standard-d',
-  'jennabilgriense@gmail.com': 'standard-c',
+  'jjennabilgrien@gmail.com': 'standard-c',
   'adrianna - Healthcare@gmail.com': 'standard-a',
   'adrianna - FinTech@gmail.com': 'standard-a',
   'adonish495@gmail.com': `standard-b`,
