@@ -191,6 +191,25 @@ const mockTemplates: Record<string,string> = {
   'markjacksonvul@gmail.com': `standard-e`,
 }
 
+/** Per-account company first-words (multi-word companies use 1st word only). Used to block bulk generate when identifier/JD matches. */
+const accountCompanyFirstWords: Record<string, string[]> = {
+  'kaylarelyease@gmail.com': ['betterhelp', 'optum', 'mojotech'],
+  'jjennabilgrien@gmail.com': ['sciencesoft', 'shipbob', 'snipcart'],
+  'adrianna - Healthcare@gmail.com': ['luxoft', 'incworx', 'amazon'],
+  'adrianna - FinTech@gmail.com': ['luxoft', 'incworx', 'amazon'],
+  'adonish495@gmail.com': ['brex', 'trellis', 'flourish'],
+  'markjacksonvul@gmail.com': ['doximity', 'teladoc', 'carenow'],
+}
+
+function findCompanyMatch(identifier: string, jobDescription: string, companies: string[]): string | null {
+  const combined = `${identifier} ${jobDescription}`.toLowerCase()
+  for (const company of companies) {
+    const re = new RegExp(`\\b${company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i')
+    if (re.test(combined)) return company
+  }
+  return null
+}
+
 type BulkItem = {
   id: string
   identifier: string
@@ -356,6 +375,16 @@ export default function Page() {
     if (!jdVal) {
       alert('Please enter a job description.')
       return
+    }
+    const companies = accountCompanyFirstWords[account]
+    if (companies?.length) {
+      const matched = findCompanyMatch(idVal, jdVal, companies)
+      if (matched) {
+        alert(`Please use a different identifier or job description.`)
+        setBulkInputIdentifier('')
+        setBulkInputJd('')
+        return
+      }
     }
     // Clear input fields immediately
     setBulkInputIdentifier('')
@@ -685,8 +714,18 @@ export default function Page() {
           Logout
         </a>
       </div>
-      <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-        <strong>Note:</strong> You can generate multiple resumes simultaneously. Downloaded files will be overwritten(windows version only) if they have the same name. Please complete each job one at a time to avoid file conflicts.
+      <div className="mb-4 space-y-2">
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-md text-yellow-800">
+           You can generate multiple resumes simultaneously. Please complete each job one at a time to avoid file conflicts.
+        </div>
+        {account && accountCompanyFirstWords[account]?.length > 0 && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded text-md text-red-800">
+            Do not place a bid for the work of {accountCompanyFirstWords[account]
+              .map((c) => (
+                <strong key={c}>"{c.charAt(0).toUpperCase() + c.slice(1)}"</strong>
+              )).reduce<React.ReactNode[]>((acc, el, i) => (i === 0 ? [el] : [...acc, ', ', el]), [])}—these names already walk with you.
+          </div>
+        )}
       </div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
