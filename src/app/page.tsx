@@ -1301,7 +1301,8 @@ export default function Page() {
                               selected.resumeData,
                               selected.identifier?.trim() || null,
                               selected.jd?.trim() || null,
-                              username
+                              username,
+                              account
                             )
                             if (selected?.id) {
                               updateBulkItem(selected.id, { savedToSupabase: true })

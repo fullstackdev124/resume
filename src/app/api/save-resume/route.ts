@@ -6,7 +6,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export async function POST(request: NextRequest) {
   try {
-    const { json, identifier, description, username } = await request.json();
+    const { json, identifier, description, username, account } = await request.json();
 
     if (!json) {
       return NextResponse.json(
@@ -24,9 +24,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-    // Extract email (part before @) from resume data; normalize to avoid duplicate buckets (e.g. "Kayla" vs "kayla")
+    // Use selected account (part before @) for email; fallback to resume data if account not provided
     let emailPrefix = ''
-    if (json?.email) {
+    if (account?.includes('@')) {
+      emailPrefix = (account.split('@')[0] || '').trim().toLowerCase()
+    } else if (account?.trim()) {
+      emailPrefix = account.trim().toLowerCase()
+    } else if (json?.email) {
       const emailParts = String(json.email).split('@')
       emailPrefix = (emailParts[0] || '').trim().toLowerCase()
     }

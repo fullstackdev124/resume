@@ -129,11 +129,16 @@ export async function saveResume(
   json: any,
   identifier: string | null,
   description: string | null,
-  username: string
+  username: string,
+  account?: string
 ) {
-  // Extract email prefix; normalize (trim + lowercase) so case/whitespace don't create duplicate buckets
+  // Use selected account (part before @) for email; fallback to resume data if account not provided
   let emailPrefix = ''
-  if (json?.email) {
+  if (account?.includes('@')) {
+    emailPrefix = (account.split('@')[0] || '').trim().toLowerCase()
+  } else if (account?.trim()) {
+    emailPrefix = account.trim().toLowerCase()
+  } else if (json?.email) {
     const emailParts = String(json.email).split('@')
     emailPrefix = (emailParts[0] || '').trim().toLowerCase()
   }
