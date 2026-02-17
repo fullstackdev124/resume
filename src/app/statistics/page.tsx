@@ -18,9 +18,8 @@ import {
 type StatRow = { email: string; count: number }
 type OutsideStatRow = { login: string; count: number }
 type WeekByDay = { day: string; count: number }
-type WeekTotalByDay = { day: string; local: number; outside: number }
-type WeekByDayStacked = { day: string; local: number; outside: number; total: number }
 type WeekOutsideByLoginAndDayRow = { day: string; login: string; count: number }
+type WeekByEmailAndDayRow = { day: string; email: string; count: number }
 
 function getDefaultWeekRange(): { first: string; last: string } {
   const now = new Date()
@@ -55,6 +54,8 @@ export default function StatisticsPage() {
   const [weekByDay, setWeekByDay] = useState<WeekByDay[]>([])
   const [weekOutsideByEmail, setWeekOutsideByEmail] = useState<OutsideStatRow[]>([])
   const [weekOutsideByDay, setWeekOutsideByDay] = useState<WeekByDay[]>([])
+  const [weekLocalByEmailAndDay, setWeekLocalByEmailAndDay] = useState<WeekByEmailAndDayRow[]>([])
+  const [weekOutsideByEmailAndDay, setWeekOutsideByEmailAndDay] = useState<WeekByEmailAndDayRow[]>([])
   const [weekOutsideByLoginAndDay, setWeekOutsideByLoginAndDay] = useState<WeekOutsideByLoginAndDayRow[]>([])
   const [weekLabel, setWeekLabel] = useState<string>('')
   const [weekLoading, setWeekLoading] = useState(false)
@@ -150,8 +151,10 @@ export default function StatisticsPage() {
       .then((data) => {
         setWeekByEmail(data.local?.byEmail ?? [])
         setWeekByDay(data.local?.byDay ?? [])
+        setWeekLocalByEmailAndDay(data.local?.byEmailAndDay ?? [])
         setWeekOutsideByEmail(data.outside?.byEmail ?? [])
         setWeekOutsideByDay(data.outside?.byDay ?? [])
+        setWeekOutsideByEmailAndDay(data.outside?.byEmailAndDay ?? [])
         setWeekOutsideByLoginAndDay(data.outside?.byLoginAndDay ?? [])
         setWeekLabel(data.weekStart && data.weekEnd ? `${data.weekStart} – ${data.weekEnd}` : '')
       })
@@ -159,15 +162,45 @@ export default function StatisticsPage() {
       .finally(() => setWeekLoading(false))
   }, [isAuthenticated, weekFirstDay, weekLastDay])
 
-  // Total by day = local + outside (for stacked bar chart)
-  const weekTotalByDay = useMemo<WeekTotalByDay[]>(() => {
-    const outsideMap = new Map(weekOutsideByDay.map((d) => [d.day, d.count]))
-    return weekByDay.map((d) => ({
-      day: d.day,
-      local: d.count,
-      outside: outsideMap.get(d.day) ?? 0,
-    }))
-  }, [weekByDay, weekOutsideByDay])
+  // Total (by day) stacked bar: merge local (email) + outside (email) per day
+  const EMAIL_COLORS = ['#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#6366f1', '#8b5cf6', '#06b6d4', '#84cc16', '#f43f5e']
+  const weekByEmailAndDayChart = useMemo(() => {
+    const days = weekByDay.map((d) => d.day)
+    const countByDayAndId = new Map<string, Map<string, number>>()
+    const addCount = (day: string, id: string, count: number) => {
+      let dayMap = countByDayAndId.get(day)
+      if (!dayMap) {
+        dayMap = new Map()
+        countByDayAndId.set(day, dayMap)
+      }
+      dayMap.set(id, (dayMap.get(id) ?? 0) + count)
+    }
+    for (const r of weekLocalByEmailAndDay) {
+      addCount(r.day, r.email, r.count)
+    }
+    for (const r of weekOutsideByEmailAndDay) {
+      addCount(r.day, r.email, r.count)
+    }
+    const allIds = [...new Set([
+      ...weekLocalByEmailAndDay.map((r) => r.email),
+      ...weekOutsideByEmailAndDay.map((r) => r.email),
+    ])]
+    return days.map((day) => {
+      const row: Record<string, string | number> = { day }
+      const dayMap = countByDayAndId.get(day)
+      for (const id of allIds) {
+        row[id] = dayMap?.get(id) ?? 0
+      }
+      return row
+    })
+  }, [weekByDay, weekLocalByEmailAndDay, weekOutsideByEmailAndDay])
+  const weekByEmailIds = useMemo(
+    () => [...new Set([
+      ...weekLocalByEmailAndDay.map((r) => r.email),
+      ...weekOutsideByEmailAndDay.map((r) => r.email),
+    ])],
+    [weekLocalByEmailAndDay, weekOutsideByEmailAndDay]
+  )
 
   // Outside by login and day: pivot to { day, [login]: count } for stacked bar chart
   const OUTSIDE_LOGIN_COLORS = ['#ec4899', '#f59e0b', '#10b981', '#6366f1', '#8b5cf6', '#06b6d4', '#84cc16', '#f43f5e']
@@ -321,19 +354,49 @@ export default function StatisticsPage() {
         )}
         {!weekLoading && !weekError && (
           <div className="space-y-8">
-            {/* Total (by day) – stacked bar: local + outside */}
+            {/* Total (by day) – stacked bar by email/login */}
             <div>
               <h3 className="text-base font-medium text-gray-700 mb-2">Total (by day)</h3>
-              <p className="text-sm text-gray-500 mb-2">Local + Outside per day (stacked)</p>
+              <p className="text-sm text-gray-500 mb-2">By email/login per day (stacked)</p>
               <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weekTotalByDay} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                  <BarChart data={weekByEmailAndDayChart} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="day" tick={{ fontSize: 12 }} />
                     <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="local" name="Local" stackId="total" fill="#3b82f6" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="outside" name="Outside" stackId="total" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload?.length) return null
+                        const total = payload.reduce((sum, p) => sum + (Number(p.value) || 0), 0)
+                        const entries = payload.filter((p) => (Number(p.value) || 0) > 0)
+                        return (
+                          <div className="bg-white border border-gray-200 rounded shadow-lg px-3 py-2 text-sm">
+                            <div className="font-medium text-gray-700 mb-1">{label}</div>
+                            {entries.map((p) => (
+                              <div key={p.name} className="flex gap-2" style={{ color: p.color }}>
+                                <span>{p.name}:</span>
+                                <span>{p.value}</span>
+                              </div>
+                            ))}
+                            <div className="flex gap-2 font-medium mt-1 pt-1 border-t border-gray-100">
+                              <span>Total:</span>
+                              <span>{total}</span>
+                            </div>
+                          </div>
+                        )
+                      }}
+                    />
+                    <Legend />
+                    {weekByEmailIds.map((id, i) => (
+                      <Bar
+                        key={id}
+                        dataKey={id}
+                        name={id}
+                        stackId="byEmail"
+                        fill={EMAIL_COLORS[i % EMAIL_COLORS.length]}
+                        radius={i === weekByEmailIds.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                      />
+                    ))}
                   </BarChart>
                 </ResponsiveContainer>
               </div>

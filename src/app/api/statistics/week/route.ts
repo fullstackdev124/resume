@@ -108,6 +108,14 @@ export async function GET(request: Request) {
       [startStr, endStr]
     )
 
+    // Local: resume_data – count by email AND day (for stacked-by-email chart)
+    const [byEmailAndDayRows] = await pool.execute(
+      `SELECT DATE(created_at) as day, email, COUNT(*) as count FROM resume_data 
+       WHERE created_at >= ? AND created_at <= ? 
+       GROUP BY DATE(created_at), email ORDER BY day, count DESC`,
+      [startStr, endStr]
+    )
+
     const byEmail = ((byEmailRows as Row[]) || []).map((row: Row) => ({
       email: row.email ?? '(no email)',
       count: Number(row.count),
@@ -119,6 +127,13 @@ export async function GET(request: Request) {
       if (key) dayMap.set(key, Number(row.count))
     }
     const byDay = days.map((day) => ({ day, count: dayMap.get(day) ?? 0 }))
+
+    type RowEmailDay = RowDataPacket & { day?: string | null; email?: string | null; count?: number }
+    const byEmailAndDay = ((byEmailAndDayRows as RowEmailDay[]) || []).map((row: RowEmailDay) => ({
+      day: toDayKey(row.day),
+      email: row.email ?? '(no email)',
+      count: Number(row.count),
+    }))
 
     // Outside: resume_data_bidder – count by login/email (this week)
     const [byEmailOutsideRows] = await pool.execute(
@@ -145,6 +160,15 @@ export async function GET(request: Request) {
       [startStr, endStr]
     )
 
+    // Outside by email AND day – for Total (by day) chart only
+    const [byEmailAndDayOutsideRows] = await pool.execute(
+      `SELECT DATE(created_at) as day, COALESCE(email, login) as email, COUNT(*) as count 
+       FROM resume_data_bidder 
+       WHERE created_at >= ? AND created_at <= ? 
+       GROUP BY DATE(created_at), COALESCE(email, login) ORDER BY day, count DESC`,
+      [startStr, endStr]
+    )
+
     const byEmailOutside = ((byEmailOutsideRows as RowBidder[]) || []).map((row: RowBidder) => ({
       login: row.email ?? '(no login)',
       count: Number(row.count),
@@ -164,11 +188,18 @@ export async function GET(request: Request) {
       count: Number(row.count),
     }))
 
+    type RowEmailDayOutside = RowDataPacket & { day?: string | null; email?: string | null; count?: number }
+    const byEmailAndDayOutside = ((byEmailAndDayOutsideRows as RowEmailDayOutside[]) || []).map((row: RowEmailDayOutside) => ({
+      day: toDayKey(row.day),
+      email: row.email ?? '(no email)',
+      count: Number(row.count),
+    }))
+
     return NextResponse.json({
       weekStart: days[0],
       weekEnd: days[days.length - 1],
-      local: { byEmail, byDay },
-      outside: { byEmail: byEmailOutside, byDay: byDayOutside, byLoginAndDay: byLoginAndDayOutside },
+      local: { byEmail, byDay, byEmailAndDay },
+      outside: { byEmail: byEmailOutside, byDay: byDayOutside, byLoginAndDay: byLoginAndDayOutside, byEmailAndDay: byEmailAndDayOutside },
     })
   } catch (e) {
     console.error('MySQL statistics/week error:', e)
